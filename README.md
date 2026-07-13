@@ -1,134 +1,193 @@
 # 🏠 Bangalore House Price Prediction using Machine Learning
 
-A Machine Learning web application that predicts house prices in Bangalore based on **Area (Square Feet), Location, Number of Bedrooms (BHK), and Bathrooms**.
+A Machine Learning web application that predicts **Bangalore house prices** based on property features such as **Area, BHK, Bathrooms, and Location**.
 
-The application uses a trained **Linear Regression** model and is deployed with a **Flask** backend and an interactive HTML/CSS/JavaScript frontend.
+The application is built with **Python, Flask, Scikit-learn, HTML, CSS, JavaScript, and jQuery**, and is deployed on **Render**.
 
 ---
 
-## 📸 Project Screenshot
+# 🌐 Live Demo
 
-> Save your screenshot inside an `assets` folder and rename it to `home.png`.
+🔗 **Live Website**
 
-```text
+https://bangalore-house-price-prediction-2xdu.onrender.com/
+
+---
+
+# 📸 Application Preview
+
+Create an **assets** folder and add your screenshots.
+
+```
 assets/
-    home.png
+│
+├── home.png
+├── prediction.png
 ```
 
-Then display it in GitHub using:
+Then display them:
 
 ```markdown
-![Home Page](assets/home.png)
+![Home](assets/home.png)
+
+![Prediction](assets/prediction.png)
 ```
 
 ---
 
-## 📖 Project Overview
+# 📖 Project Overview
 
-The Bangalore House Price Prediction System is a Machine Learning-based web application that estimates the price of residential properties in Bangalore.
+The Bangalore House Price Prediction System is a regression-based Machine Learning application that estimates residential property prices using a trained Linear Regression model.
 
-Users simply enter:
+Users can enter:
 
 - 📐 Area (Square Feet)
 - 🛏 Number of Bedrooms (BHK)
 - 🛁 Number of Bathrooms
 - 📍 Location
 
-The trained Linear Regression model predicts the estimated house price instantly.
+The trained model predicts the estimated property price instantly through a Flask REST API.
 
 ---
 
-## ✨ Features
+# ✨ Features
 
 - 🏠 Predict Bangalore house prices
 - 📍 Dynamic Location Dropdown
-- 📐 Area Input
+- 📐 Area Input Validation
 - 🛏 BHK Selection (1–7)
 - 🛁 Bathroom Selection (1–7)
-- ✅ Bathroom validation (Maximum = BHK + 2)
-- 🚫 Disabled invalid bathroom options
-- ⚡ Real-time Prediction
+- ✅ Bathroom Validation (Maximum = BHK + 2)
+- 🚫 Invalid Bathroom Options Disabled Automatically
+- ⚡ Instant Price Prediction
 - 🌐 Flask REST API Backend
 - 📱 Responsive User Interface
-- 🎨 Modern Glassmorphism Design
+- 🎨 Modern UI Design
+- ☁️ Deployed on Render
 
 ---
 
-## 🧠 Machine Learning Workflow
+# 🛠 Technologies Used
 
-```text
-Dataset Collection
-        │
-        ▼
-Data Cleaning
-        │
-        ▼
-Feature Engineering
-        │
-        ▼
-Outlier Removal
-        │
-        ▼
-One-Hot Encoding
-        │
-        ▼
-Train-Test Split
-        │
-        ▼
-Linear Regression Model
-        │
-        ▼
-Model Evaluation
-        │
-        ▼
-Flask Deployment
-        │
-        ▼
-Web Application
-```
+## Programming Language
 
----
+- Python
 
-## 📊 Dataset Information
-
-| Property | Details |
-|----------|---------|
-| Dataset | Bengaluru House Data |
-| Source | Kaggle |
-| Rows | 13,320 |
-| Columns | 9 |
-| File | Bengaluru_House_Data.csv |
-
----
-
-## 🛠 Technologies Used
-
-### Frontend
+## Frontend
 
 - HTML5
 - CSS3
 - JavaScript
 - jQuery
 
-### Backend
+## Backend
 
 - Flask
 - Flask-CORS
+- Gunicorn
 
-### Machine Learning
+## Machine Learning
 
-- Python
 - NumPy
 - Pandas
 - Scikit-learn
 - Joblib
 
+## Deployment
+
+- Render
+
+## Version Control
+
+- Git
+- GitHub
+
 ---
 
-## 📂 Project Structure
+# 🧠 Machine Learning Workflow
 
-```text
+```
+Dataset
+    │
+    ▼
+Data Cleaning
+    │
+    ▼
+Feature Engineering
+    │
+    ▼
+Outlier Removal
+    │
+    ▼
+One Hot Encoding
+    │
+    ▼
+Train Test Split
+    │
+    ▼
+Linear Regression
+    │
+    ▼
+Model Evaluation
+    │
+    ▼
+Model Serialization
+    │
+    ▼
+Flask API
+    │
+    ▼
+Web Application
+```
+
+---
+
+# 📊 Dataset Information
+
+| Property | Details |
+|----------|----------|
+| Dataset | Bengaluru House Data |
+| Source | Kaggle |
+| Rows | 13,320 |
+| Columns | 9 |
+| ML Problem | Regression |
+
+---
+
+# 🏗 Project Architecture
+
+```
+                User
+                  │
+                  ▼
+          HTML / CSS / JavaScript
+                  │
+                  ▼
+             Flask Backend
+                  │
+        --------------------
+        │                  │
+        ▼                  ▼
+   util.py           Trained Model
+        │                  │
+        └──────────┬───────┘
+                   ▼
+        Price Prediction
+                   │
+                   ▼
+              JSON Response
+                   │
+                   ▼
+            Display Result
+```
+
+---
+
+# 📂 Project Structure
+
+```
 Banglore_house_price_prediction/
+
 │
 ├── client/
 │
@@ -138,6 +197,7 @@ Banglore_house_price_prediction/
 │   └── columns.json
 │
 ├── server/
+│   │
 │   ├── artifacts/
 │   │   ├── banglore_home_prices_model.pickle
 │   │   └── columns.json
@@ -150,7 +210,8 @@ Banglore_house_price_prediction/
 │   │   └── app.html
 │   │
 │   ├── app.py
-│   └── util.py
+│   ├── util.py
+│   └── wsgi.py
 │
 ├── Bengaluru_House_Data.csv
 ├── requirements.txt
@@ -161,17 +222,17 @@ Banglore_house_price_prediction/
 
 ---
 
-## ⚙️ Installation
+# ⚙️ Installation Guide
 
-### Clone the repository
+## 1 Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/Bangalore-House-Price-Prediction.git
+git clone https://github.com/dhruvikkansagara23-boop/Bangalore-House-Price-Prediction.git
 ```
 
 ---
 
-### Move into the project
+## 2 Move into Project
 
 ```bash
 cd Banglore_house_price_prediction
@@ -179,7 +240,7 @@ cd Banglore_house_price_prediction
 
 ---
 
-### Install dependencies
+## 3 Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -187,7 +248,7 @@ pip install -r requirements.txt
 
 ---
 
-### Start Flask Server
+## 4 Start Flask Server
 
 ```bash
 cd server
@@ -196,7 +257,7 @@ python app.py
 
 ---
 
-### Open in Browser
+## 5 Open Browser
 
 ```
 http://127.0.0.1:5000
@@ -204,27 +265,61 @@ http://127.0.0.1:5000
 
 ---
 
-![Home Page](assets/home.png)
+# 🚀 API Endpoints
 
-## 🚀 How to Use
+## Get Locations
 
-1. Enter Area (Square Feet)
-2. Select Number of Bedrooms (BHK)
-3. Select Number of Bathrooms
-4. Select Location
-5. Click **Estimate Price**
-6. View Predicted House Price
+```
+GET /get_location_names
+```
+
+Response
+
+```json
+{
+  "locations": [
+    "whitefield",
+    "electronic city",
+    "indira nagar"
+  ]
+}
+```
 
 ---
 
-## 📌 Validation Rules
+## Predict Price
+
+```
+POST /predict_home_price
+```
+
+Parameters
+
+```
+sqft
+bhk
+bath
+location
+```
+
+Response
+
+```json
+{
+   "estimated_price": 83.52
+}
+```
+
+---
+
+# 📌 Validation Rules
 
 ✔ Bathrooms cannot exceed **BHK + 2**
 
-Example:
+Example
 
 | BHK | Maximum Bathrooms |
-|-----|-------------------|
+|------|-------------------|
 | 1 | 3 |
 | 2 | 4 |
 | 3 | 5 |
@@ -233,27 +328,43 @@ Example:
 | 6 | 7 |
 | 7 | 7 |
 
-Invalid selections are automatically disabled.
+Invalid options are automatically disabled.
 
 ---
 
-## 📈 Future Enhancements
+# ☁️ Deployment
 
-- Deep Learning Model
-- Random Forest & XGBoost Comparison
+The application is deployed on **Render** using:
+
+- Gunicorn
+- Flask
+- Python
+- GitHub Integration
+
+Live URL
+
+https://bangalore-house-price-prediction-2xdu.onrender.com/
+
+---
+
+# 📈 Future Enhancements
+
+- XGBoost Model
+- Random Forest Comparison
 - House Image Upload
-- Interactive Price Charts
-- Nearby Schools & Hospitals
+- Interactive Price Visualization
 - Google Maps Integration
+- Nearby Schools & Hospitals
+- User Authentication
+- Save Prediction History
 - Dark Mode
-- User Login System
-- Property Recommendation System
+- Mobile App Version
 
 ---
 
-## 📜 Requirements
+# 📦 Requirements
 
-Install all required packages using:
+Install all required packages:
 
 ```bash
 pip install -r requirements.txt
@@ -261,14 +372,18 @@ pip install -r requirements.txt
 
 ---
 
-## 👨‍💻 Author
+# 👨‍💻 Author
 
 **Dhruvik Kansagra**
 
+MCA Student | Data Science & Machine Learning Enthusiast
+
+GitHub:
+
+https://github.com/dhruvikkansagara23-boop
+
 ---
 
+# ⭐ Support
 
-
-## ⭐ If you like this project
-
-Give this repository a ⭐ on GitHub.
+If you found this project useful, consider giving it a ⭐ on GitHub.
