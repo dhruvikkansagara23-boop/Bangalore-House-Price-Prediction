@@ -37,18 +37,18 @@ def predict_home_price():
     return response
 
 
+
+    # print("Starting Flask Server...")
+  
+
+
+
+print("Loading saved artifacts...")
+util.load_saved_artifacts()
+
 if __name__ == "__main__":
-    print("Loading saved artifacts...")
-    util.load_saved_artifacts()
     print("Starting Flask Server...")
     app.run(debug=True)
-
-
-
-
-
-
-
 
 
 
