@@ -45,13 +45,20 @@ def load_saved_artifacts():
     global __data_columns
     global __model
 
-    # Load columns.json
-    with open(os.path.join(ARTIFACTS_DIR, "columns.json"), "r") as f:
+    columns_path = os.path.join(ARTIFACTS_DIR, "columns.json")
+    model_path = os.path.join(ARTIFACTS_DIR, "banglore_home_prices_model.pickle")
+
+    print("Columns Path:", columns_path)
+    print("Model Path:", model_path)
+
+    with open(columns_path, "r") as f:
         __data_columns = json.load(f)["data_columns"]
         __location = __data_columns[3:]
 
-    # Load trained model
-    with open(os.path.join(ARTIFACTS_DIR, "banglore_home_prices_model.pickle"), "rb") as f:
+    print("Total Locations:", len(__location))
+    print("First Location:", __location[0])
+
+    with open(model_path, "rb") as f:
         __model = pickle.load(f)
 
     print("Artifacts loaded successfully!")
