@@ -162,8 +162,8 @@ if (location.value == "") {
 
   var estPrice = document.getElementById("uiEstimatedPrice");
 
-  var url = "http://127.0.0.1:5000/predict_home_price";
-
+//   var url = "http://127.0.0.1:5000/predict_home_price";
+var url = "/predict_home_price";
   $.post(url, {
       sqft: parseFloat(sqft.value),
       bhk: bhk,
@@ -200,46 +200,46 @@ if (location.value == "") {
 
 
 function onPageLoad() {
-  console.log("document loaded");
 
-  var url = "http://127.0.0.1:5000/get_location_names";
+    console.log("document loaded");
 
-  $.get(url, function(data, status) {
-      if (data) {
-          var locations = data.locations;
-          var uiLocations = document.getElementById("uiLocations");
-          // $('#uiLocations').empty();
-          $('#uiLocations').empty();
+    var url = "/get_location_names";
 
-          $('#uiLocations').append(
-            new Option("Choose Location","")
-           );
-           document.getElementById("uiLocations").selectedIndex=0;
+    $.get(url, function(data, status){
 
-          for (var i = 0; i < locations.length; i++) {
-              var opt = new Option(locations[i]);
-              $('#uiLocations').append(opt);
-          }
-      }
-  });
+        if(data){
 
+            var locations = data.locations;
 
+            $("#uiLocations").empty();
 
+            $("#uiLocations").append(
+                new Option("Choose Location","")
+            );
 
+            for(var i=0;i<locations.length;i++){
 
+                $("#uiLocations").append(
+                    new Option(locations[i], locations[i])
+                );
 
-  var bhkRadios = document.getElementsByName("uiBHK");
+            }
 
-for (var i = 0; i < bhkRadios.length; i++) {
+        }
 
-    bhkRadios[i].addEventListener("change", updateBathOptions);
+    });
+
+    var bhkRadios=document.getElementsByName("uiBHK");
+
+    for(var i=0;i<bhkRadios.length;i++){
+
+        bhkRadios[i].addEventListener("change",updateBathOptions);
+
+    }
+
+    updateBathOptions();
 
 }
-
-updateBathOptions();
-}
-
-window.onload = onPageLoad;
 
 
 // window.onload = onPageLoad;
