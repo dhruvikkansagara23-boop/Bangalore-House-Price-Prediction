@@ -46,24 +46,43 @@ Users can enter:
 - 🛁 Number of Bathrooms
 - 📍 Location
 
-The trained model predicts the estimated property price instantly through a Flask REST API.
+The trained model predicts the estimated property price instantly through a Flask REST API, along with a price range, confidence score, category, and personalized insights.
 
 ---
 
 # ✨ Features
 
-- 🏠 Predict Bangalore house prices
-- 📍 Dynamic Location Dropdown
-- 📐 Area Input Validation
-- 🛏 BHK Selection (1–7)
-- 🛁 Bathroom Selection (1–7)
-- ✅ Bathroom Validation (Maximum = BHK + 2)
-- 🚫 Invalid Bathroom Options Disabled Automatically
-- ⚡ Instant Price Prediction
-- 🌐 Flask REST API Backend
-- 📱 Responsive User Interface
-- 🎨 Modern UI Design
-- ☁️ Deployed on Render
+## Core Prediction
+- 🏠 Predict Bangalore house prices instantly
+- 📍 Dynamic Location Dropdown (240+ locations)
+- ⚡ Flask REST API Backend
+
+## Smart Validation
+- 📐 Area Validation (300 – 10,000 sqft)
+- 🛏 BHK Selection (1–7) with realistic BHK-to-area range checking
+- 🛁 Bathroom Selection (1–7), validated against BHK (Bathrooms ≥ BHK − 1 and ≤ BHK + 2)
+- 🚫 Invalid bathroom options disabled automatically based on selected BHK
+- ⚠ Inline warnings for unusually large properties (luxury-area threshold)
+- ❌ Clear, inline error messages instead of browser alerts
+
+## Prediction Insights
+- 💰 Estimated price displayed in Lakhs or Crore automatically
+- 📊 Possible price range (±7% of estimate)
+- 🏷 Price category badge (Budget / Mid-Range / Premium / Luxury) with star rating
+- 📈 Prediction confidence meter
+- 📶 Mini bar-charts for area, bedrooms, and bathrooms
+- 🤖 Smart Advisor — contextual tips generated from the entered property configuration
+- 📋 Property Summary card shown alongside the prediction
+
+## UI / UX
+- 🎨 Modern, card-based UI with a hero section
+- 🌗 Light / Dark mode toggle (persisted across visits)
+- 📱 Fully responsive design (desktop, tablet, mobile)
+- ⏳ Loading state with spinner while a prediction is in progress
+- ✅ Animated result reveal with success confirmation
+
+## Deployment
+- ☁️ Deployed on Render with auto-deploy on push to `main`
 
 ---
 
@@ -176,6 +195,11 @@ Web Application
                    │
                    ▼
               JSON Response
+                   │
+                   ▼
+        Client-side Insights
+   (range, confidence, category,
+        advisor, charts)
                    │
                    ▼
             Display Result
@@ -314,21 +338,37 @@ Response
 
 # 📌 Validation Rules
 
-✔ Bathrooms cannot exceed **BHK + 2**
+## Area
+- Minimum: 300 sqft
+- Maximum: 10,000 sqft
+- Above 3,000 sqft: shown as a luxury-property warning (accuracy may be lower)
 
-Example
+## BHK vs Area
 
-| BHK | Maximum Bathrooms |
-|------|-------------------|
-| 1 | 3 |
-| 2 | 4 |
-| 3 | 5 |
-| 4 | 6 |
-| 5 | 7 |
-| 6 | 7 |
-| 7 | 7 |
+| Area Range (sqft) | Realistic BHK |
+|---|---|
+| ≤ 600 | 1–2 |
+| 601–900 | 1–3 |
+| 901–1300 | 2–4 |
+| 1301–1800 | 3–5 |
+| 1801–2500 | 4–6 |
+| 2501+ | 5–7 |
 
-Invalid options are automatically disabled.
+## Bathrooms vs BHK
+
+✔ Bathrooms must be between **BHK − 1** and **BHK + 2**
+
+| BHK | Minimum Bathrooms | Maximum Bathrooms |
+|------|-------------------|-------------------|
+| 1 | 1 | 3 |
+| 2 | 1 | 4 |
+| 3 | 2 | 5 |
+| 4 | 3 | 6 |
+| 5 | 4 | 7 |
+| 6 | 5 | 7 |
+| 7 | 6 | 7 |
+
+Invalid bathroom options are automatically disabled based on the selected BHK.
 
 ---
 
@@ -339,7 +379,7 @@ The application is deployed on **Render** using:
 - Gunicorn
 - Flask
 - Python
-- GitHub Integration
+- GitHub Integration (auto-deploy on push to `main`)
 
 Live URL
 
@@ -352,12 +392,12 @@ https://bangalore-house-price-prediction-2xdu.onrender.com/
 - XGBoost Model
 - Random Forest Comparison
 - House Image Upload
-- Interactive Price Visualization
+- Interactive Price Visualization (advanced charts)
 - Google Maps Integration
 - Nearby Schools & Hospitals
 - User Authentication
 - Save Prediction History
-- Dark Mode
+- Downloadable / Shareable Prediction Report
 - Mobile App Version
 
 ---

@@ -1,4 +1,257 @@
+
+
 <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bangalore House Price Prediction</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+
+<body>
+
+<div class="bg-image"></div>
+
+<!-- Dark mode toggle -->
+<button id="themeToggle" class="theme-toggle" title="Toggle dark mode">🌙</button>
+
+<!-- Hero section -->
+<header class="hero">
+    <div class="hero-content">
+        <h1>🏠 Bangalore House Price Predictor</h1>
+        <p>Find the estimated market value of your dream home using Machine Learning.</p>
+        <div class="hero-stats">
+            <span>✔ 13,000+ Houses Trained</span>
+            <span>✔ 240+ Locations</span>
+            <span>✔ Linear Regression Model</span>
+            <span>✔ Instant Prediction</span>
+        </div>
+        <a href="#predictorCard" class="hero-btn">Start Prediction</a>
+    </div>
+</header>
+
+<div class="container">
+
+    <div class="card" id="predictorCard">
+
+        <h2 class="card-title">📋 Property Information</h2>
+
+        <div class="form-grid">
+
+            <div class="field">
+                <label for="uiSqft">📐 Area (Square Feet)
+                    <span class="tooltip" data-tip="Minimum 300 sqft · Maximum 10,000 sqft">ⓘ</span>
+                </label>
+                <input
+                    type="number"
+                    id="uiSqft"
+                    class="area"
+                    placeholder="Enter Area in Sq. Ft."
+                    value="1000"
+                    min="300"
+                    max="10000"
+                    step="0.5"
+                >
+                <div id="areaError" class="error-message"></div>
+                <div id="areaWarning" class="warning-message"></div>
+            </div>
+
+            <div class="field">
+                <label>📍 Location</label>
+                <select class="location" id="uiLocations">
+                    <option value="" disabled selected>Choose Location</option>
+                </select>
+                <div id="locationError" class="error-message"></div>
+            </div>
+
+        </div>
+
+        <div class="field">
+            <label>🛏 Bedrooms (BHK)</label>
+            <div class="switch-field">
+                <input type="radio" id="radio-bhk-1" name="uiBHK" value="1">
+                <label for="radio-bhk-1">1</label>
+
+                <input type="radio" id="radio-bhk-2" name="uiBHK" value="2" checked>
+                <label for="radio-bhk-2">2</label>
+
+                <input type="radio" id="radio-bhk-3" name="uiBHK" value="3">
+                <label for="radio-bhk-3">3</label>
+
+                <input type="radio" id="radio-bhk-4" name="uiBHK" value="4">
+                <label for="radio-bhk-4">4</label>
+
+                <input type="radio" id="radio-bhk-5" name="uiBHK" value="5">
+                <label for="radio-bhk-5">5</label>
+
+                <input type="radio" id="radio-bhk-6" name="uiBHK" value="6">
+                <label for="radio-bhk-6">6</label>
+
+                <input type="radio" id="radio-bhk-7" name="uiBHK" value="7">
+                <label for="radio-bhk-7">7</label>
+            </div>
+            <div id="bhkError" class="error-message"></div>
+            <div id="bhkSuggestion" class="suggestion-message"></div>
+        </div>
+
+        <div class="field">
+            <label>🛁 Bathrooms</label>
+            <div class="switch-field">
+                <input type="radio" id="radio-bath-1" name="uiBathrooms" value="1">
+                <label for="radio-bath-1">1</label>
+
+                <input type="radio" id="radio-bath-2" name="uiBathrooms" value="2" checked>
+                <label for="radio-bath-2">2</label>
+
+                <input type="radio" id="radio-bath-3" name="uiBathrooms" value="3">
+                <label for="radio-bath-3">3</label>
+
+                <input type="radio" id="radio-bath-4" name="uiBathrooms" value="4">
+                <label for="radio-bath-4">4</label>
+
+                <input type="radio" id="radio-bath-5" name="uiBathrooms" value="5">
+                <label for="radio-bath-5">5</label>
+
+                <input type="radio" id="radio-bath-6" name="uiBathrooms" value="6">
+                <label for="radio-bath-6">6</label>
+
+                <input type="radio" id="radio-bath-7" name="uiBathrooms" value="7">
+                <label for="radio-bath-7">7</label>
+            </div>
+            <div id="bathError" class="error-message"></div>
+        </div>
+
+        <button class="submit" type="button" id="estimateBtn" onclick="onClickedEstimatePrice()">
+            <span id="btnText">Estimate Price</span>
+            <span id="btnSpinner" class="spinner" style="display:none;"></span>
+        </button>
+
+    </div>
+
+    <!-- Property Summary (shown before prediction result) -->
+    <div class="card summary-card" id="summaryCard" style="display:none;">
+        <h2 class="card-title">📋 Property Summary</h2>
+        <div class="summary-grid">
+            <div><span>📐 Area</span><strong id="sumArea">-</strong></div>
+            <div><span>🛏 Bedrooms</span><strong id="sumBhk">-</strong></div>
+            <div><span>🛁 Bathrooms</span><strong id="sumBath">-</strong></div>
+            <div><span>📍 Location</span><strong id="sumLocation">-</strong></div>
+        </div>
+    </div>
+
+    <!-- Result card -->
+    <div class="card result-card" id="resultCard" style="display:none;">
+
+        <div class="result-header">
+            <span>Estimated Market Value</span>
+        </div>
+
+        <div id="uiEstimatedPrice" class="price-display"></div>
+
+        <div id="priceRange" class="price-range"></div>
+
+        <div class="category-row">
+            <span id="priceCategory" class="category-badge"></span>
+            <span id="ratingStars" class="rating-stars"></span>
+        </div>
+
+        <div class="confidence-block">
+            <div class="confidence-label">
+                <span>Prediction Confidence</span>
+                <span id="confidenceValue">-</span>
+            </div>
+            <div class="confidence-bar">
+                <div id="confidenceFill" class="confidence-fill"></div>
+            </div>
+        </div>
+
+        <div class="chart-block">
+            <div class="chart-row">
+                <span>Area</span>
+                <div class="chart-track"><div id="barArea" class="chart-fill"></div></div>
+            </div>
+            <div class="chart-row">
+                <span>Bedrooms</span>
+                <div class="chart-track"><div id="barBhk" class="chart-fill"></div></div>
+            </div>
+            <div class="chart-row">
+                <span>Bathrooms</span>
+                <div class="chart-track"><div id="barBath" class="chart-fill"></div></div>
+            </div>
+        </div>
+
+        <div id="successMessage" class="success-message">✔ Prediction completed successfully</div>
+
+        <div class="advisor-block">
+            <h3>🤖 Smart Advisor</h3>
+            <ul id="advisorList"></ul>
+        </div>
+
+    </div>
+
+    <div id="predictionErrorCard" class="card error-card" style="display:none;"></div>
+
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -89,7 +342,7 @@
 
         </div>
 
-        <!-- Validation Message -->
+        Validation Message
 
         <div id="bathError" class="error-message"></div>
 
@@ -113,7 +366,7 @@
 
         <div id="uiEstimatedPrice" class="result">
 
-            <!-- <h2>Estimated Price</h2> -->
+            <h2>Estimated Price</h2>
 
         </div>
 
@@ -123,7 +376,7 @@
 
 </body>
 
-</html>
+</html> -->
 
 
 
