@@ -5,19 +5,18 @@
    Smart validation, prediction UI, and result presentation
 --------------------------------------------------------- */
 
-// BHK range allowed per area bracket: [minBHK, maxBHK]
-const BHK_RULES = [
-    { max: 600,   range: [1, 2] },
-    { max: 900,   range: [1, 3] },
-    { max: 1300,  range: [2, 4] },
-    { max: 1800,  range: [3, 5] },
-    { max: 2500,  range: [4, 6] },
-    { max: Infinity, range: [5, 7] }
-];
+// Minimum realistic area (sqft) per bedroom - used only to catch extreme mismatches
+const MIN_AREA_PER_BHK = 220;       // e.g. 7 BHK needs at least ~1540 sqft
+const SPACIOUS_AREA_PER_BHK = 1000; // above this, bedroom count looks low - soft suggestion only
 
 const AREA_MIN = 300;
 const AREA_MAX = 10000;
 const LUXURY_AREA_THRESHOLD = 3000;
+
+function bhkRangeForArea(area) {
+    var maxBhk = Math.max(1, Math.min(7, Math.floor(area / MIN_AREA_PER_BHK)));
+    return [1, maxBhk];
+}
 
 function getBathValue() {
     var uiBathrooms = document.getElementsByName("uiBathrooms");
@@ -33,13 +32,6 @@ function getBHKValue() {
         if (uiBHK[i].checked) return parseInt(uiBHK[i].value);
     }
     return -1;
-}
-
-function bhkRangeForArea(area) {
-    for (var i = 0; i < BHK_RULES.length; i++) {
-        if (area <= BHK_RULES[i].max) return BHK_RULES[i].range;
-    }
-    return [1, 7];
 }
 
 function showMessage(id, text) {
@@ -61,16 +53,26 @@ function updateBathOptions() {
     var bathRadios = document.getElementsByName("uiBathrooms");
     var minBath = Math.max(1, bhk - 1);
     var maxBath = Math.min(7, bhk + 2);
+    var currentBath = getBathValue();
+    var needsReset = currentBath < minBath || currentBath > maxBath;
 
     for (var i = 0; i < bathRadios.length; i++) {
         var bath = parseInt(bathRadios[i].value);
         var allowed = bath >= minBath && bath <= maxBath;
         bathRadios[i].disabled = !allowed;
-        if (!allowed && bathRadios[i].checked) {
-            bathRadios[0].disabled = false;
-            bathRadios[0].checked = true;
+    }
+
+    if (needsReset) {
+        // Pick a sensible default within the new valid range instead of forcing "1"
+        var target = Math.min(Math.max(bhk, minBath), maxBath);
+        for (var j = 0; j < bathRadios.length; j++) {
+            if (parseInt(bathRadios[j].value) === target) {
+                bathRadios[j].checked = true;
+                break;
+            }
         }
     }
+
     validateBathSelection();
     validateAreaAndBHK();
 }
@@ -125,11 +127,20 @@ function validateAreaAndBHK() {
     }
 
     var range = bhkRangeForArea(area);
-    if (bhk < range[0] || bhk > range[1]) {
-        var suggestion = range[0] === range[1] ? (range[0] + " BHK") : (range[0] + "–" + range[1] + " BHK");
+
+    // Hard block: too many bedrooms crammed into too little space
+    if (bhk > range[1]) {
+        var neededArea = bhk * MIN_AREA_PER_BHK;
         showMessage("bhkError",
-            "❌ " + area + " sqft is not realistic for " + bhk + " BHK. Suggested: " + suggestion + ".");
+            "❌ " + area + " sqft is too small for " + bhk + " BHK. Either choose " + range[1] + " BHK or fewer, or increase the area to at least " + neededArea + " sqft.");
         return false;
+    }
+
+    // Soft suggestion only: bedroom count looks low for a spacious home - does not block prediction
+    var areaPerBedroom = area / bhk;
+    if (areaPerBedroom > SPACIOUS_AREA_PER_BHK && bhk < 7) {
+        showMessage("bhkSuggestion",
+            "💡 This area could comfortably support more bedrooms — consider " + Math.min(7, bhk + 1) + "+ BHK if that suits your needs.");
     }
 
     return true;
@@ -261,14 +272,21 @@ function onClickedEstimatePrice() {
     setLoading(true);
 
     var url = "/predict_home_price";
+    var formData = new URLSearchParams();
+    formData.append("sqft", area);
+    formData.append("bhk", bhk);
+    formData.append("bath", bathrooms);
+    formData.append("location", location.value);
 
-    $.post(url, {
-        sqft: area,
-        bhk: bhk,
-        bath: bathrooms,
-        location: location.value
+    fetch(url, {
+        method: "POST",
+        body: formData
     })
-    .done(function (data) {
+    .then(function (response) {
+        if (!response.ok) throw new Error("Server error");
+        return response.json();
+    })
+    .then(function (data) {
         setLoading(false);
 
         if (!data || typeof data.estimated_price === "undefined" || data.estimated_price === null) {
@@ -293,7 +311,6 @@ function onClickedEstimatePrice() {
         document.getElementById("confidenceValue").textContent = confidence + "%";
         animateBar("confidenceFill", confidence);
 
-        var range = bhkRangeForArea(area);
         var areaPercent = Math.min(100, (area / AREA_MAX) * 100);
         var bhkPercent = Math.min(100, (bhk / 7) * 100);
         var bathPercent = Math.min(100, (bathrooms / 7) * 100);
@@ -306,7 +323,7 @@ function onClickedEstimatePrice() {
         document.getElementById("resultCard").style.display = "block";
         document.getElementById("resultCard").scrollIntoView({ behavior: "smooth", block: "center" });
     })
-    .fail(function () {
+    .catch(function () {
         setLoading(false);
         showPredictionError("🌐 Unable to connect to the server. Check your internet connection and try again.");
     });
@@ -347,21 +364,53 @@ function initTheme() {
 
 function onPageLoad() {
     var url = "/get_location_names";
+    var estimateBtn = document.getElementById("estimateBtn");
+    var btnText = document.getElementById("btnText");
+    var locationSelect = document.getElementById("uiLocations");
 
-    $.get(url, function (data) {
-        if (data) {
-            var locations = data.locations;
-            $("#uiLocations").empty();
-            $("#uiLocations").append(new Option("Choose Location", ""));
-            for (var i = 0; i < locations.length; i++) {
-                $("#uiLocations").append(new Option(locations[i], locations[i]));
+    // Show a clear loading state while the server wakes up / locations load
+    locationSelect.innerHTML = "";
+    locationSelect.appendChild(new Option("Loading locations...", ""));
+    locationSelect.disabled = true;
+    estimateBtn.disabled = true;
+    btnText.textContent = "Loading...";
+
+    fetch(url)
+        .then(function (response) {
+            if (!response.ok) throw new Error("Server error");
+            return response.json();
+        })
+        .then(function (data) {
+            if (data && data.locations && data.locations.length) {
+                var locations = data.locations;
+                locationSelect.innerHTML = "";
+                locationSelect.appendChild(new Option("Choose Location", ""));
+                for (var i = 0; i < locations.length; i++) {
+                    locationSelect.appendChild(new Option(locations[i], locations[i]));
+                }
+                locationSelect.disabled = false;
+            } else {
+                locationSelect.innerHTML = "";
+                locationSelect.appendChild(new Option("No locations available - refresh page", ""));
             }
-        }
-    });
+            estimateBtn.disabled = false;
+            btnText.textContent = "Estimate Price";
+        })
+        .catch(function () {
+            locationSelect.innerHTML = "";
+            locationSelect.appendChild(new Option("Failed to load - refresh page", ""));
+            estimateBtn.disabled = false;
+            btnText.textContent = "Estimate Price";
+        });
 
     var bhkRadios = document.getElementsByName("uiBHK");
     for (var i = 0; i < bhkRadios.length; i++) {
         bhkRadios[i].addEventListener("change", updateBathOptions);
+    }
+
+    var bathRadiosOnLoad = document.getElementsByName("uiBathrooms");
+    for (var k = 0; k < bathRadiosOnLoad.length; k++) {
+        bathRadiosOnLoad[k].addEventListener("change", validateBathSelection);
     }
 
     document.getElementById("uiSqft").addEventListener("input", validateAreaAndBHK);
@@ -372,7 +421,6 @@ function onPageLoad() {
 }
 
 window.onload = onPageLoad;
-
 
 
 
