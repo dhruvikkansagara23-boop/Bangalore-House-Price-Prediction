@@ -6,8 +6,8 @@
 --------------------------------------------------------- */
 
 // Minimum realistic area (sqft) per bedroom - used only to catch extreme mismatches
-const MIN_AREA_PER_BHK = 220;       // e.g. 7 BHK needs at least ~1540 sqft
-const SPACIOUS_AREA_PER_BHK = 1000; // above this, bedroom count looks low - soft suggestion only
+const MIN_AREA_PER_BHK = 220;       // hard block only for extreme overcrowding, e.g. 7 BHK needs at least ~1540 sqft
+const SPACIOUS_AREA_PER_BHK = 1400; // above this, bedroom count looks unusually low - soft suggestion only
 
 const AREA_MIN = 300;
 const AREA_MAX = 10000;
