@@ -200,9 +200,34 @@ function resetCompareButton() {
 }
 
 // ── Render comparison results ────────────────────────────────
+let compareRadarObj = null;
+
 function renderComparison(results) {
     var maxPrice = Math.max.apply(null, results.map(function (r) { return r.price; }));
     var minPrice = Math.min.apply(null, results.map(function (r) { return r.price; }));
+
+    // Find Best Value (Lowest Price / Sqft)
+    var minSqftPrice = Infinity;
+    var bestValueLabel = "";
+    
+    // Find Most Balanced (Closest to 500 sqft per BHK)
+    var mostBalancedLabel = "";
+    var minDiffFromIdeal = Infinity;
+
+    results.forEach(function(r) {
+        var pps = (r.price * 100000) / r.area;
+        if (pps < minSqftPrice) {
+            minSqftPrice = pps;
+            bestValueLabel = r.label;
+        }
+        
+        var idealBhk = Math.max(1, Math.min(7, Math.round(r.area / 500)));
+        var diff = Math.abs(r.bhk - idealBhk);
+        if (diff < minDiffFromIdeal) {
+            minDiffFromIdeal = diff;
+            mostBalancedLabel = r.label;
+        }
+    });
 
     // Bars
     var barsContainer = document.getElementById("compareBars");
@@ -244,18 +269,76 @@ function renderComparison(results) {
         if (isLowest)  tr.classList.add("lowest-price");
         if (isHighest) tr.classList.add("highest-price");
 
-        var flag = "";
-        if (isLowest)  flag = '<span class="price-flag lowest">Lowest</span>';
-        if (isHighest) flag = '<span class="price-flag highest">Highest</span>';
+        var flags = [];
+        if (isHighest) flags.push('<span class="price-flag highest">Most Exp.</span>');
+        if (r.label === bestValueLabel) flags.push('<span class="price-flag" style="background:var(--accent);color:white;margin-left:5px;">Best Value</span>');
+        if (r.label === mostBalancedLabel) flags.push('<span class="price-flag" style="background:#8b5cf6;color:white;margin-left:5px;">Balanced</span>');
 
         tr.innerHTML =
             "<td>" + r.label + "</td>" +
             "<td>" + r.area + " sqft</td>" +
             "<td>" + r.bhk + " BHK / " + r.bath + " Bath</td>" +
             "<td>" + r.location + "</td>" +
-            "<td>" + formatPrice(r.price) + flag + "</td>";
+            "<td>" + formatPrice(r.price) + flags.join('') + "</td>";
 
         tbody.appendChild(tr);
+    });
+
+    // Render Radar Chart
+    var maxArea = Math.max.apply(null, results.map(r => r.area));
+    var maxBhk = Math.max.apply(null, results.map(r => r.bhk));
+    var maxBath = Math.max.apply(null, results.map(r => r.bath));
+
+    var radarDataSets = results.map((r, i) => {
+        var colors = ['rgba(56, 189, 248, 0.6)', 'rgba(34, 197, 94, 0.6)', 'rgba(234, 179, 8, 0.6)'];
+        var borders = ['#38bdf8', '#22c55e', '#eab308'];
+        return {
+            label: r.label,
+            data: [
+                (r.price / maxPrice) * 100,
+                (r.area / maxArea) * 100,
+                (r.bhk / maxBhk) * 100,
+                (r.bath / maxBath) * 100
+            ],
+            backgroundColor: colors[i % colors.length],
+            borderColor: borders[i % borders.length],
+            borderWidth: 2
+        };
+    });
+
+    if (compareRadarObj) compareRadarObj.destroy();
+    
+    Chart.defaults.color = '#8b949e'; 
+    Chart.defaults.borderColor = '#30363d';
+    
+    var ctxRadar = document.getElementById('compareRadarChart').getContext('2d');
+    compareRadarObj = new Chart(ctxRadar, {
+        type: 'radar',
+        data: {
+            labels: ['Price', 'Area', 'BHK', 'Bathrooms'],
+            datasets: radarDataSets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: { color: '#30363d' },
+                    grid: { color: '#30363d' },
+                    pointLabels: { color: '#8b949e', font: { size: 12 } },
+                    ticks: { display: false } // hide percentage axis numbers
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + " relative scale";
+                        }
+                    }
+                }
+            }
+        }
     });
 
     var resultCard = document.getElementById("compareResultCard");

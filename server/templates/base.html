@@ -17,7 +17,7 @@
 <!-- Navbar -->
 <nav class="navbar">
     <div class="navbar-inner">
-        <a href="{{ url_for('home') }}" class="brand">🏠 BHP<span>Predictor</span></a>
+        <a href="{{ url_for('home') }}" class="brand">🏠 House Price <span>Predictor</span></a>
 
         <button id="navToggle" class="nav-toggle" aria-label="Toggle navigation">
             <span></span>
@@ -29,6 +29,8 @@
             <li><a href="{{ url_for('home') }}" class="{% if request.path == url_for('home') %}active{% endif %}">Home</a></li>
             <li><a href="{{ url_for('predict') }}" class="{% if request.path == url_for('predict') %}active{% endif %}">Predict</a></li>
             <li><a href="{{ url_for('compare') }}" class="{% if request.path == url_for('compare') %}active{% endif %}">Compare</a></li>
+            <li><a href="{{ url_for('dashboard') }}" class="{% if request.path == url_for('dashboard') %}active{% endif %}">Dashboard</a></li>
+            <li><a href="{{ url_for('history') }}" class="{% if request.path == url_for('history') %}active{% endif %}">History</a></li>
             <li><a href="{{ url_for('about') }}" class="{% if request.path == url_for('about') %}active{% endif %}">About</a></li>
         </ul>
 

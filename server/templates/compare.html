@@ -30,7 +30,12 @@
     <div class="card" id="compareResultCard" style="display:none;">
         <h2 class="card-title">📈 Comparison Results</h2>
 
-        <div id="compareBars" class="compare-bars"></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center; margin-bottom: 30px;">
+            <div id="compareBars" class="compare-bars" style="margin: 0;"></div>
+            <div style="background: var(--bg-alt); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <canvas id="compareRadarChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
 
         <div class="table-wrap">
             <table class="compare-table" id="compareTable">
@@ -102,5 +107,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ url_for('static', filename='js/compare.js') }}"></script>
 {% endblock %}

@@ -1,31 +1,8 @@
 /* ---------------------------------------------------------
    predict.js — Bangalore House Price Predictor (predict page)
-
-   BUG FIX — BHK vs. area validation
-   ----------------------------------
-   BEFORE: the old validation used a single flat "sqft per bedroom"
-   minimum (275 sqft/BHK) applied uniformly to every BHK count, i.e.
-   maxBhkForArea just did  area / 275  and floored it. That let
-   unrealistic combos like 1600-1800 sqft for a 6 BHK pass, because
-   6 * 275 = 1650 and 6 * 325 = 1950 — both at or under those areas.
-   Large BHK counts were treated as if they only needed *more
-   bedrooms*, when in reality they also need more shared/common
-   space (bigger living areas, extra corridors, more bathrooms) per
-   additional bedroom.
-
-   FIX: the per-bedroom minimum now increases once BHK > 3:
-     minAreaPerBhk(bhk) = 275                      for bhk <= 3
-     minAreaPerBhk(bhk) = 275 + (bhk - 3) * 90      for bhk  > 3
-   and the TOTAL area required for a BHK count is bhk * minAreaPerBhk(bhk)
-   (not a flat multiply against a single constant). maxBhkForArea()
-   and the error/suggestion messages both use this total.
-
-   Verified against the two target cases:
-     - 1600 sqft / 6 BHK  -> minTotalAreaForBhk(6) = 6 * (275+3*90) = 3270
-                              1600 < 3270  -> BLOCKED ✔
-     - 2600 sqft / 5 BHK  -> minTotalAreaForBhk(5) = 5 * (275+2*90) = 2275
-                              2600 >= 2275 -> PASSES ✔
+   Features added: Leaflet Maps, jsPDF export, Backend Advisor
 --------------------------------------------------------- */
+
 
 // ── Constants ──────────────────────────────────────────────
 const MIN_AREA_PER_BHK      = 275;   // base rate: hard block, real market minimum for 1-3 BHK
@@ -258,51 +235,35 @@ function estimateConfidence(area, bhk, bath) {
 }
 
 // ── Smart Advisor ───────────────────────────────────────────
-function renderAdvisor(area, bhk, bath, priceInLakhs) {
-    var tips = [];
-    var idealBhk = idealBhkForArea(area);
-
-    // Family size
-    if (bhk === 1) {
-        tips.push("✔ Ideal for a single professional or couple.");
-    } else if (bhk >= 4) {
-        tips.push("✔ Ideal for a family of " + (bhk + 1) + "–" + (bhk + 2) + " members.");
-    } else {
-        tips.push("✔ Suitable for a family of " + bhk + "–" + (bhk + 1) + " members.");
-    }
-
-    // Ideal BHK hint (only when their choice is off by >= 2)
-    if (Math.abs(bhk - idealBhk) >= 2) {
-        tips.push("💡 For " + area + " sqft, " + idealBhk +
-            " BHK is typically the most balanced choice (~" +
-            IDEAL_AREA_PER_BHK + " sqft/bedroom).");
-    }
-
-    // Parking
-    tips.push("✔ Recommended parking: " + (bhk >= 3 ? "1–2 cars" : "1 car") + ".");
-
-    // Segment advice
-    if (priceInLakhs < 70) {
-        tips.push("✔ Falls in an affordable price segment — good for first-time buyers.");
-    } else if (priceInLakhs < 150) {
-        tips.push("✔ Mid-to-premium segment with solid resale value.");
-    } else {
-        tips.push("✔ High-value property with strong long-term investment potential.");
-    }
-
-    // Area-per-bedroom quality
-    var apb = area / bhk;
-    if (apb >= IDEAL_AREA_PER_BHK) {
-        tips.push("✔ Spacious bedroom-to-area ratio — comfortable living space.");
-    } else {
-        tips.push("✔ Efficient use of space — compact but functional layout.");
-    }
-
-    // Bathroom note
-    tips.push("✔ Bathroom count (" + bath + ") is well balanced for this configuration.");
-
+function renderAdvisor(area, bhk, bath, priceInLakhs, backendInsights) {
     var list = document.getElementById("advisorList");
     list.innerHTML = "";
+    
+    // Use backend insights if provided
+    if (backendInsights && backendInsights.length > 0) {
+        backendInsights.forEach(function(insight) {
+            var li = document.createElement("li");
+            li.innerHTML = `<strong>${insight.title}:</strong> ${insight.description}`;
+            list.appendChild(li);
+        });
+        return;
+    }
+
+    // Fallback to local logic (if backend fails)
+    var tips = [];
+    var idealBhk = idealBhkForArea(area);
+    if (bhk === 1) tips.push("✔ Ideal for a single professional or couple.");
+    else if (bhk >= 4) tips.push("✔ Ideal for a family of " + (bhk + 1) + "–" + (bhk + 2) + " members.");
+    else tips.push("✔ Suitable for a family of " + bhk + "–" + (bhk + 1) + " members.");
+
+    if (Math.abs(bhk - idealBhk) >= 2) {
+        tips.push("💡 For " + area + " sqft, " + idealBhk + " BHK is typically the most balanced choice (~" + IDEAL_AREA_PER_BHK + " sqft/bedroom).");
+    }
+
+    if (priceInLakhs < 70) tips.push("✔ Falls in an affordable price segment — good for first-time buyers.");
+    else if (priceInLakhs < 150) tips.push("✔ Mid-to-premium segment with solid resale value.");
+    else tips.push("✔ High-value property with strong long-term investment potential.");
+
     tips.forEach(function (t) {
         var li = document.createElement("li");
         li.textContent = t;
@@ -428,17 +389,62 @@ function onClickedEstimatePrice() {
                 return;
             }
 
-            var price = Number(data.estimated_price);
+            var price = Number(data.price || data.estimated_price);
 
             // ── Price display ──────────────────────────────────
             var priceLabel = formatPrice(price);
             document.getElementById("uiEstimatedPrice").innerHTML = priceLabel;
 
-            var pct  = rangePercent(price);
-            var low  = price * (1 - pct);
-            var high = price * (1 + pct);
-            document.getElementById("priceRange").textContent =
-                "Possible Range: " + formatPrice(low) + " – " + formatPrice(high);
+            if (data.range) {
+                document.getElementById("priceRange").textContent =
+                    "Confidence Interval: " + formatPrice(data.range[0]) + " – " + formatPrice(data.range[1]);
+            } else {
+                var pct  = rangePercent(price);
+                var low  = price * (1 - pct);
+                var high = price * (1 + pct);
+                document.getElementById("priceRange").textContent =
+                    "Possible Range: " + formatPrice(low) + " – " + formatPrice(high);
+            }
+
+            // Deal Score
+            var dealBadge = document.getElementById("dealScoreBadge");
+            var dealList = document.getElementById("dealInsightsList");
+            if (dealBadge && data.deal_score) {
+                dealBadge.textContent = "🏷 Deal Score: " + data.deal_score.score + "/10 (" + data.deal_score.verdict + ")";
+                if (dealList) {
+                    dealList.innerHTML = "";
+                    data.deal_score.reasons.forEach(function(r) {
+                        var li = document.createElement("li");
+                        li.textContent = r;
+                        dealList.appendChild(li);
+                    });
+                }
+            }
+            
+            // Location Score
+            var locBadge = document.getElementById("locationScoreBadge");
+            if (locBadge && data.location_score) {
+                locBadge.textContent = "📍 Location Score: " + data.location_score.location_score + "/10 (" + data.location_score.label + ")";
+                // Merge location insights into deal insights list for display
+                if (dealList && data.location_score.insights) {
+                    data.location_score.insights.forEach(function(r) {
+                        var li = document.createElement("li");
+                        li.textContent = "Location: " + r;
+                        dealList.appendChild(li);
+                    });
+                }
+            }
+
+            // AI Explanation
+            var expList = document.getElementById("aiExplanationList");
+            if (expList && data.explanation) {
+                expList.innerHTML = "";
+                data.explanation.forEach(function(exp) {
+                    var li = document.createElement("li");
+                    li.textContent = "• " + exp;
+                    expList.appendChild(li);
+                });
+            }
 
             // Price per sqft (sanity check line)
             var pricePerSqft = Math.round((price * 100000) / area);
@@ -480,7 +486,7 @@ function onClickedEstimatePrice() {
                 }
             }
 
-            renderAdvisor(area, bhk, bathrooms, price);
+            renderAdvisor(area, bhk, bathrooms, price, data.advice || data.advisor_insights);
 
             document.getElementById("resultCard").style.display = "block";
             document.getElementById("resultCard").scrollIntoView({ behavior: "smooth", block: "center" });
@@ -494,7 +500,8 @@ function onClickedEstimatePrice() {
                 priceLabel: priceLabel
             });
         })
-        .catch(function () {
+        .catch(function (e) {
+            console.error(e);
             setLoading(false);
             showPredictionError("🌐 Cannot connect to the server. Check your connection and try again.");
         });
@@ -540,6 +547,8 @@ function onPredictPageLoad() {
             estimateBtn.disabled = false;
             btnText.textContent  = "Estimate Price";
         });
+        
+    if(window.initMap) window.initMap();
 
     // BHK change -> update bath options + re-validate
     var bhkRadios = document.getElementsByName("uiBHK");
@@ -558,12 +567,41 @@ function onPredictPageLoad() {
         updateBathOptions();   // re-checks both BHK and area constraints on bath
         validateAreaAndBHK();  // updates BHK error / suggestion messages
     });
-    document.getElementById("uiLocations").addEventListener("change", validateLocation);
+    document.getElementById("uiLocations").addEventListener("change", function() {
+        validateLocation();
+        if(window.updateMapLocation) window.updateMapLocation(this.value);
+    });
 
     document.getElementById("clearHistoryBtn").addEventListener("click", clearHistory);
+    document.getElementById("downloadPdfBtn").addEventListener("click", downloadResultPDF);
 
     updateBathOptions();
     renderHistory();
+}
+
+function downloadResultPDF() {
+    var btn = document.getElementById("downloadPdfBtn");
+    var originalText = btn.textContent;
+    btn.textContent = "Generating...";
+    btn.disabled = true;
+
+    var element = document.getElementById("pdfExportWrapper");
+    html2canvas(element, { 
+        scale: 2, 
+        backgroundColor: '#121519', // match deep body bg to prevent white gaps
+        ignoreElements: function(el) { return el.id === 'downloadPdfBtn'; } 
+    }).then(function(canvas) {
+        var imgData = canvas.toDataURL('image/png');
+        var pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+        var pdfWidth = pdf.internal.pageSize.getWidth();
+        var pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save("Property_Prediction_Report.pdf");
+        
+        btn.textContent = originalText;
+        btn.disabled = false;
+    });
 }
 
 document.addEventListener("DOMContentLoaded", onPredictPageLoad);
