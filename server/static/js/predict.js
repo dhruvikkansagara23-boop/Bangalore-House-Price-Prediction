@@ -1,72 +1,40 @@
+/* ---------------------------------------------------------
+   predict.js — Bangalore House Price Predictor (predict page)
 
+   BUG FIX — BHK vs. area validation
+   ----------------------------------
+   BEFORE: the old validation used a single flat "sqft per bedroom"
+   minimum (275 sqft/BHK) applied uniformly to every BHK count, i.e.
+   maxBhkForArea just did  area / 275  and floored it. That let
+   unrealistic combos like 1600-1800 sqft for a 6 BHK pass, because
+   6 * 275 = 1650 and 6 * 325 = 1950 — both at or under those areas.
+   Large BHK counts were treated as if they only needed *more
+   bedrooms*, when in reality they also need more shared/common
+   space (bigger living areas, extra corridors, more bathrooms) per
+   additional bedroom.
 
-/* ---------------------------------------------------------
-   Bangalore House Price Predictor - app.js
-   Smart validation, prediction UI, and result presentation
---------------------------------------------------------- */
-/* ---------------------------------------------------------
-   Bangalore House Price Predictor - app.js  (v2)
-   Fixes:
-   1. MIN_AREA_PER_BHK raised to 400 sqft (realistic floor)
-   2. IDEAL_AREA_PER_BHK = 500 sqft → drives sweet-spot suggestion
-   3. Advisor "Suitable for family of X–X" bug fixed (1 BHK no longer says "2–2")
-   4. Proactive ideal-BHK suggestion shown in the result card
-   5. Confidence now based on ideal-BHK distance, not dummy formula
-   6. Price-per-sqft shown in result for quick sanity check
-   7. Better range: ±10% for budget, ±7% for mid, ±5% for premium/luxury
-   8. Location cleared from error on any change, not only on submit
---------------------------------------------------------- */
+   FIX: the per-bedroom minimum now increases once BHK > 3:
+     minAreaPerBhk(bhk) = 275                      for bhk <= 3
+     minAreaPerBhk(bhk) = 275 + (bhk - 3) * 90      for bhk  > 3
+   and the TOTAL area required for a BHK count is bhk * minAreaPerBhk(bhk)
+   (not a flat multiply against a single constant). maxBhkForArea()
+   and the error/suggestion messages both use this total.
 
-/* ---------------------------------------------------------
-   Bangalore House Price Predictor - app.js  (v3)
-   v2 fixes carried forward, plus:
-   9.  Bath range is now AREA-AWARE — large homes require more bathrooms.
-       minBath = max(bhkMin, areaMin) where:
-         bhkMin  = max(1, ceil(BHK / 2))     — at least half as many baths as BHKs
-         areaMin = max(1, floor(area / 600))  — 1 bath per 600 sqft
-       This blocks 1800 sqft / 2 BHK / 1 bath (area alone demands ≥ 3 baths).
-  10.  updateBathOptions() is now triggered by area input changes too,
-       so the bath radio buttons disable/enable live as you type the area.
-  11.  Auto-reset picks the new valid minimum (not just clamp-to-BHK)
-       when current bath falls below the area-driven minimum.
---------------------------------------------------------- */
-/* ---------------------------------------------------------
-   Bangalore House Price Predictor - app.js  (v5)
-   v4 fixes carried forward, plus:
-  14.  Bath rule simplified to pure BHK parity (Indian market standard):
-         minBath = BHK       (2BHK → must have ≥ 2 baths)
-         maxBath = BHK + 2   (2BHK → up to 4 baths, capped at 7)
-       Area-based bath math removed entirely — it was wrong for
-       real compact flats (640–670 sqft 2BHK with 2 baths is normal).
---------------------------------------------------------- */
-/* ---------------------------------------------------------
-   Bangalore House Price Predictor - app.js  (v5)
-   v4 fixes carried forward, plus:
-  14.  Bath rule simplified to pure BHK parity (Indian market standard):
-         minBath = BHK       (2BHK → must have ≥ 2 baths)
-         maxBath = BHK + 2   (2BHK → up to 4 baths, capped at 7)
-       Area-based bath math removed entirely — it was wrong for
-       real compact flats (640–670 sqft 2BHK with 2 baths is normal).
---------------------------------------------------------- */
-/* ---------------------------------------------------------
-   Bangalore House Price Predictor - app.js  (v6)
-   v5 fixes carried forward, plus:
-  15.  FIXED: maxBhkForArea used a flat MIN_AREA_PER_BHK for every
-       BHK count, so large BHK selections (e.g. 6 BHK) only needed
-       BHK * 275 sqft total — letting 1600-1800 sqft "pass" for
-       5-6 BHK, which is unrealistic (large BHK counts need more
-       shared/common space per bedroom, not less).
-       Now the per-bedroom minimum scales up once BHK > 3, and
-       maxBhkForArea/validateAreaAndBHK compare against the TOTAL
-       area required for that BHK count instead of a flat multiply.
+   Verified against the two target cases:
+     - 1600 sqft / 6 BHK  -> minTotalAreaForBhk(6) = 6 * (275+3*90) = 3270
+                              1600 < 3270  -> BLOCKED ✔
+     - 2600 sqft / 5 BHK  -> minTotalAreaForBhk(5) = 5 * (275+2*90) = 2275
+                              2600 >= 2275 -> PASSES ✔
 --------------------------------------------------------- */
 
 // ── Constants ──────────────────────────────────────────────
-const MIN_AREA_PER_BHK     = 275;   // base rate: hard block, real market minimum for 1-3 BHK
-const IDEAL_AREA_PER_BHK   = 500;   // sweet spot: 1000 sqft → ideal 2 BHK
-const AREA_MIN              = 300;
-const AREA_MAX              = 10000;
-const LUXURY_AREA_THRESHOLD = 3000;
+const MIN_AREA_PER_BHK      = 275;   // base rate: hard block, real market minimum for 1-3 BHK
+const IDEAL_AREA_PER_BHK    = 500;   // sweet spot: 1000 sqft -> ideal 2 BHK
+const AREA_MIN               = 300;
+const AREA_MAX               = 10000;
+const LUXURY_AREA_THRESHOLD  = 3000;
+const HISTORY_KEY            = "bhp_recent_estimates";
+const HISTORY_LIMIT          = 5;
 
 // ── BHK helpers ────────────────────────────────────────────
 function idealBhkForArea(area) {
@@ -94,8 +62,8 @@ function maxBhkForArea(area) {
 }
 
 // Bath range — BHK parity rule (Indian market standard)
-//   minBath = BHK           → 1BHK=1, 2BHK=2, 3BHK=3 …
-//   maxBath = min(7, BHK+2) → 1BHK=3, 2BHK=4, 5BHK=7 …
+//   minBath = BHK           -> 1BHK=1, 2BHK=2, 3BHK=3 ...
+//   maxBath = min(7, BHK+2) -> 1BHK=3, 2BHK=4, 5BHK=7 ...
 //   No area-based math — compact 2BHK flats (550-700 sqft) with 2 baths are normal.
 function bathRange(bhk) {
     return {
@@ -282,7 +250,7 @@ function estimateConfidence(area, bhk, bath) {
     var bathBalanced = (bath >= bhk - 1 && bath <= bhk + 1);
 
     var confidence = 95;
-    confidence -= bhkDiff * 8;              // −8% per BHK away from ideal
+    confidence -= bhkDiff * 8;              // -8% per BHK away from ideal
     if (!bathBalanced) confidence -= 5;
     if (area > LUXURY_AREA_THRESHOLD) confidence -= 4;
 
@@ -294,7 +262,7 @@ function renderAdvisor(area, bhk, bath, priceInLakhs) {
     var tips = [];
     var idealBhk = idealBhkForArea(area);
 
-    // Family size — fixed for 1 BHK edge case
+    // Family size
     if (bhk === 1) {
         tips.push("✔ Ideal for a single professional or couple.");
     } else if (bhk >= 4) {
@@ -303,7 +271,7 @@ function renderAdvisor(area, bhk, bath, priceInLakhs) {
         tips.push("✔ Suitable for a family of " + bhk + "–" + (bhk + 1) + " members.");
     }
 
-    // Ideal BHK hint (only when their choice is off by ≥ 2)
+    // Ideal BHK hint (only when their choice is off by >= 2)
     if (Math.abs(bhk - idealBhk) >= 2) {
         tips.push("💡 For " + area + " sqft, " + idealBhk +
             " BHK is typically the most balanced choice (~" +
@@ -336,7 +304,7 @@ function renderAdvisor(area, bhk, bath, priceInLakhs) {
     var list = document.getElementById("advisorList");
     list.innerHTML = "";
     tips.forEach(function (t) {
-        var li       = document.createElement("li");
+        var li = document.createElement("li");
         li.textContent = t;
         list.appendChild(li);
     });
@@ -359,10 +327,65 @@ function setLoading(isLoading) {
     spinner.style.display = isLoading ? "inline-block" : "none";
 }
 
+// ── Recent Estimates history (localStorage) ──────────────────
+function loadHistory() {
+    try {
+        var raw = localStorage.getItem(HISTORY_KEY);
+        return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveHistoryEntry(entry) {
+    var history = loadHistory();
+    history.unshift(entry);
+    history = history.slice(0, HISTORY_LIMIT);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    renderHistory();
+}
+
+function clearHistory() {
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+}
+
+function renderHistory() {
+    var card = document.getElementById("historyCard");
+    var list = document.getElementById("historyList");
+    var history = loadHistory();
+
+    if (!history.length) {
+        card.style.display = "none";
+        list.innerHTML = "";
+        return;
+    }
+
+    card.style.display = "block";
+    list.innerHTML = "";
+
+    history.forEach(function (entry) {
+        var li = document.createElement("li");
+
+        var meta = document.createElement("span");
+        meta.className = "history-meta";
+        meta.textContent = entry.area + " sqft · " + entry.bhk + " BHK · " +
+            entry.bath + " Bath · " + entry.location;
+
+        var price = document.createElement("span");
+        price.className = "history-price";
+        price.textContent = entry.priceLabel;
+
+        li.appendChild(meta);
+        li.appendChild(price);
+        list.appendChild(li);
+    });
+}
+
 // ── Main prediction handler ─────────────────────────────────
 function onClickedEstimatePrice() {
-    document.getElementById("resultCard").style.display        = "none";
-    document.getElementById("summaryCard").style.display       = "none";
+    document.getElementById("resultCard").style.display          = "none";
+    document.getElementById("summaryCard").style.display         = "none";
     document.getElementById("predictionErrorCard").style.display = "none";
 
     var sqftInput = document.getElementById("uiSqft");
@@ -371,18 +394,18 @@ function onClickedEstimatePrice() {
     var bathrooms = getBathValue();
     var location  = document.getElementById("uiLocations");
 
-    var areaOk    = validateAreaAndBHK();
-    var bathOk    = validateBathSelection();
+    var areaOk     = validateAreaAndBHK();
+    var bathOk     = validateBathSelection();
     var locationOk = validateLocation();
 
     if (!areaOk || !bathOk || !locationOk) return;
 
     // Summary card
-    document.getElementById("sumArea").textContent     = area + " sqft";
-    document.getElementById("sumBhk").textContent      = bhk;
-    document.getElementById("sumBath").textContent     = bathrooms;
-    document.getElementById("sumLocation").textContent = location.value;
-    document.getElementById("summaryCard").style.display = "block";
+    document.getElementById("sumArea").textContent       = area + " sqft";
+    document.getElementById("sumBhk").textContent         = bhk;
+    document.getElementById("sumBath").textContent        = bathrooms;
+    document.getElementById("sumLocation").textContent    = location.value;
+    document.getElementById("summaryCard").style.display  = "block";
 
     setLoading(true);
 
@@ -408,7 +431,8 @@ function onClickedEstimatePrice() {
             var price = Number(data.estimated_price);
 
             // ── Price display ──────────────────────────────────
-            document.getElementById("uiEstimatedPrice").innerHTML = formatPrice(price);
+            var priceLabel = formatPrice(price);
+            document.getElementById("uiEstimatedPrice").innerHTML = priceLabel;
 
             var pct  = rangePercent(price);
             var low  = price * (1 - pct);
@@ -445,7 +469,7 @@ function onClickedEstimatePrice() {
             if (idealEl) {
                 if (idealBhk !== bhk) {
                     idealEl.style.display = "block";
-                    idealEl.textContent   =
+                    idealEl.textContent =
                         "💡 Ideal BHK for " + area + " sqft is " + idealBhk +
                         " (~" + IDEAL_AREA_PER_BHK + " sqft/bedroom). " +
                         "Your " + bhk + " BHK selection " +
@@ -460,6 +484,15 @@ function onClickedEstimatePrice() {
 
             document.getElementById("resultCard").style.display = "block";
             document.getElementById("resultCard").scrollIntoView({ behavior: "smooth", block: "center" });
+
+            // Save to Recent Estimates
+            saveHistoryEntry({
+                area: area,
+                bhk: bhk,
+                bath: bathrooms,
+                location: location.value,
+                priceLabel: priceLabel
+            });
         })
         .catch(function () {
             setLoading(false);
@@ -473,32 +506,8 @@ function showPredictionError(message) {
     el.textContent   = message;
 }
 
-// ── Dark mode ───────────────────────────────────────────────
-function initTheme() {
-    var toggle = document.getElementById("themeToggle");
-    var saved  = localStorage.getItem("theme");
-
-    if (saved === "dark") {
-        document.documentElement.setAttribute("data-theme", "dark");
-        toggle.textContent = "☀️";
-    }
-
-    toggle.addEventListener("click", function () {
-        var isDark = document.documentElement.getAttribute("data-theme") === "dark";
-        if (isDark) {
-            document.documentElement.removeAttribute("data-theme");
-            toggle.textContent = "🌙";
-            localStorage.setItem("theme", "light");
-        } else {
-            document.documentElement.setAttribute("data-theme", "dark");
-            toggle.textContent = "☀️";
-            localStorage.setItem("theme", "dark");
-        }
-    });
-}
-
 // ── Page load ───────────────────────────────────────────────
-function onPageLoad() {
+function onPredictPageLoad() {
     var locationSelect = document.getElementById("uiLocations");
     var estimateBtn    = document.getElementById("estimateBtn");
     var btnText        = document.getElementById("btnText");
@@ -522,8 +531,8 @@ function onPageLoad() {
             } else {
                 locationSelect.appendChild(new Option("No locations — refresh page", ""));
             }
-            estimateBtn.disabled  = false;
-            btnText.textContent   = "Estimate Price";
+            estimateBtn.disabled = false;
+            btnText.textContent  = "Estimate Price";
         })
         .catch(function () {
             locationSelect.innerHTML = "";
@@ -532,305 +541,29 @@ function onPageLoad() {
             btnText.textContent  = "Estimate Price";
         });
 
-    // BHK change → update bath options + re-validate
+    // BHK change -> update bath options + re-validate
     var bhkRadios = document.getElementsByName("uiBHK");
     for (var i = 0; i < bhkRadios.length; i++) {
         bhkRadios[i].addEventListener("change", updateBathOptions);
     }
 
-    // Bath change → re-validate
+    // Bath change -> re-validate
     var bathRadios = document.getElementsByName("uiBathrooms");
     for (var k = 0; k < bathRadios.length; k++) {
         bathRadios[k].addEventListener("change", validateBathSelection);
     }
 
-    // Area change → re-validate BHK AND update bath radio availability
+    // Area change -> re-validate BHK AND update bath radio availability
     document.getElementById("uiSqft").addEventListener("input", function () {
         updateBathOptions();   // re-checks both BHK and area constraints on bath
         validateAreaAndBHK();  // updates BHK error / suggestion messages
     });
     document.getElementById("uiLocations").addEventListener("change", validateLocation);
 
+    document.getElementById("clearHistoryBtn").addEventListener("click", clearHistory);
+
     updateBathOptions();
-    initTheme();
+    renderHistory();
 }
 
-window.onload = onPageLoad;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // function getBathValue() {
-// //   var uiBathrooms = document.getElementsByName("uiBathrooms");
-// //   for(var i in uiBathrooms) {
-// //     if(uiBathrooms[i].checked) {
-// //         return parseInt(i)+1;
-// //     }
-// //   }
-// //   return -1; // Invalid Value
-// // }
-
-// function getBathValue() {
-//     var uiBathrooms = document.getElementsByName("uiBathrooms");
-
-//     for (var i = 0; i < uiBathrooms.length; i++) {
-//         if (uiBathrooms[i].checked) {
-//             return parseInt(uiBathrooms[i].value);
-//         }
-//     }
-
-//     return -1;
-// }
-
-
-// // function getBHKValue() {
-// //   var uiBHK = document.getElementsByName("uiBHK");
-// //   for(var i in uiBHK) {
-// //     if(uiBHK[i].checked) {
-// //         return parseInt(i)+1;
-// //     }
-// //   }
-// //   return -1; // Invalid Value
-// // }
-
-
-// function getBHKValue() {
-//     var uiBHK = document.getElementsByName("uiBHK");
-
-//     for (var i = 0; i < uiBHK.length; i++) {
-//         if (uiBHK[i].checked) {
-//             return parseInt(uiBHK[i].value);
-//         }
-//     }
-
-//     return -1;
-// }
-
-
-
-
-// function updateBathOptions() {
-
-//     var bhk = getBHKValue();
-
-//     var bathRadios = document.getElementsByName("uiBathrooms");
-
-//     var maxBath = Math.min(7, bhk + 2);
-
-//     for (var i = 0; i < bathRadios.length; i++) {
-
-//         var bath = parseInt(bathRadios[i].value);
-
-//         if (bath <= maxBath) {
-
-//             bathRadios[i].disabled = false;
-
-//         } else {
-
-//             bathRadios[i].disabled = true;
-
-//             if (bathRadios[i].checked) {
-
-//                 bathRadios[0].checked = true;
-
-//             }
-
-//         }
-
-//     }
-
-// }
-
-
-
-
-
-
-
-
-
-
-// function validateBathSelection() {
-
-//     var bhk = getBHKValue();
-
-//     var bath = getBathValue();
-
-//     var error = document.getElementById("bathError");
-
-//     if (bath > bhk + 2) {
-
-//         error.style.display = "block";
-
-//         error.innerHTML =
-//         "❌ You cannot select more than " +
-//         (bhk + 2) +
-//         " bathrooms for " +
-//         bhk +
-//         " BHK.";
-
-//         return false;
-
-//     }
-
-//     error.style.display = "none";
-
-//     error.innerHTML = "";
-
-//     return true;
-
-// }
-
-
-
-
-
-
-
-
-// function onClickedEstimatePrice() {
-//   console.log("Estimate price button clicked");
-
-//   var sqft = document.getElementById("uiSqft");
-//   var bhk = getBHKValue();
-//   var bathrooms = getBathValue();
-
-
-//   var location = document.getElementById("uiLocations");
-
-//   if (!validateBathSelection()) {
-
-//     return;
-
-// }
-
-// if (sqft.value <= 0) {
-
-//     alert("Please enter a valid area.");
-
-//     return;
-
-// }
-
-// if (location.value == "") {
-
-//     alert("Please select a location.");
-
-//     return;
-
-// }
-
-
-
-//   var estPrice = document.getElementById("uiEstimatedPrice");
-
-// //   var url = "http://127.0.0.1:5000/predict_home_price";
-// var url = "/predict_home_price";
-//   $.post(url, {
-//       sqft: parseFloat(sqft.value),
-//       bhk: bhk,
-//       bath: bathrooms,
-//       location: location.value
-//   }, function(data, status) {
-//       // estPrice.innerHTML = "<h2>₹ " + data.estimated_price + " Lakhs</h2>";
-//       // estPrice.innerHTML ="<h2>₹ " + Number(data.estimated_price).toFixed(2) + " Lakhs</h2>";
-//       if(data.estimated_price){
-
-//     estPrice.innerHTML =
-//     "<h2>₹ "+Number(data.estimated_price).toFixed(2)+" Lakhs</h2>";
-//   }else{
-
-//     estPrice.innerHTML =
-//     "<h2>Prediction Failed</h2>";
-//   } 
-
-//   });
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// function onPageLoad() {
-
-//     console.log("document loaded");
-
-//     var url = "/get_location_names";
-
-//     $.get(url, function(data, status){
-
-//         if(data){
-
-//             var locations = data.locations;
-
-//             $("#uiLocations").empty();
-
-//             $("#uiLocations").append(
-//                 new Option("Choose Location","")
-//             );
-
-//             for(var i=0;i<locations.length;i++){
-
-//                 $("#uiLocations").append(
-//                     new Option(locations[i], locations[i])
-//                 );
-
-//             }
-
-//         }
-
-//     });
-
-//     var bhkRadios=document.getElementsByName("uiBHK");
-
-//     for(var i=0;i<bhkRadios.length;i++){
-
-//         bhkRadios[i].addEventListener("change",updateBathOptions);
-
-//     }
-
-//     updateBathOptions();
-
-// }
-
-
-// window.onload = onPageLoad;
+document.addEventListener("DOMContentLoaded", onPredictPageLoad);

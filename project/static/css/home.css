@@ -1,0 +1,191 @@
+/* ── Hero ── */
+.hero{
+    background:linear-gradient(135deg, #1d4ed8 0%, #2563eb 45%, #16a34a 130%);
+    color:#fff;
+    padding:70px 20px 90px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+}
+
+.hero::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1400&q=80') center/cover;
+    opacity:.14;
+    mix-blend-mode:overlay;
+}
+
+.hero-content{
+    position:relative;
+    z-index:1;
+    max-width:720px;
+    margin:0 auto;
+}
+
+.hero h1{
+    font-size:clamp(28px, 5vw, 42px);
+    font-weight:800;
+    margin-bottom:12px;
+}
+
+.hero p{
+    font-size:16px;
+    opacity:.9;
+    margin-bottom:22px;
+}
+
+.hero-stats{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:14px;
+    margin-bottom:28px;
+    font-size:13px;
+    font-weight:500;
+}
+
+.hero-stats span{
+    background:rgba(255,255,255,.15);
+    padding:6px 14px;
+    border-radius:999px;
+    backdrop-filter:blur(4px);
+}
+
+/* ── Shared section layout ── */
+.section{
+    padding:70px 20px;
+}
+
+.section-inner{
+    max-width:1000px;
+    margin:0 auto;
+}
+
+.section-title{
+    font-size:28px;
+    font-weight:800;
+    text-align:center;
+    margin-bottom:8px;
+}
+
+.section-subtitle{
+    text-align:center;
+    color:var(--text-muted);
+    margin-bottom:40px;
+    font-size:15px;
+}
+
+/* ── How it works ── */
+.steps-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:22px;
+}
+
+.step-card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:28px 22px;
+    text-align:center;
+    box-shadow:var(--shadow);
+}
+
+.step-number{
+    width:40px;
+    height:40px;
+    line-height:40px;
+    border-radius:50%;
+    background:var(--blue);
+    color:#fff;
+    font-weight:800;
+    margin:0 auto 16px;
+}
+
+.step-card h3{
+    font-size:17px;
+    margin-bottom:8px;
+}
+
+.step-card p{
+    font-size:13.5px;
+    color:var(--text-muted);
+    line-height:1.5;
+}
+
+/* ── Highlights ── */
+.highlights{
+    background:var(--card-bg);
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+}
+
+.highlight-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:22px;
+    margin-top:40px;
+}
+
+.section-inner .section-title + .highlight-grid{
+    margin-top:0;
+}
+
+.highlight-card{
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:26px 22px;
+    text-align:center;
+}
+
+.highlight-icon{
+    font-size:30px;
+    margin-bottom:12px;
+}
+
+.highlight-card h3{
+    font-size:16px;
+    margin-bottom:8px;
+}
+
+.highlight-card p{
+    font-size:13.5px;
+    color:var(--text-muted);
+    line-height:1.5;
+}
+
+/* ── CTA ── */
+.cta-section{
+    padding:70px 20px 90px;
+    text-align:center;
+}
+
+.cta-inner h2{
+    font-size:24px;
+    font-weight:800;
+    margin-bottom:10px;
+}
+
+.cta-inner p{
+    color:var(--text-muted);
+    margin-bottom:24px;
+}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+    .steps-grid,
+    .highlight-grid{
+        grid-template-columns:1fr;
+    }
+
+    .hero{
+        padding:56px 16px 76px;
+    }
+
+    .section{
+        padding:50px 16px;
+    }
+}

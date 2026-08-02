@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Home · Bangalore House Price Predictor{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<header class="hero">
+    <div class="hero-content">
+        <h1>🏠 Bangalore House Price Predictor</h1>
+        <p>Find the estimated market value of your dream home using Machine Learning, trained on real Bangalore housing data.</p>
+        <div class="hero-stats">
+            <span>✔ 13,000+ Houses Trained</span>
+            <span>✔ 240+ Locations</span>
+            <span>✔ Linear Regression Model</span>
+            <span>✔ Instant Prediction</span>
+        </div>
+        <a href="{{ url_for('predict') }}" class="btn btn-light">Start Prediction</a>
+    </div>
+</header>
+
+<section class="section how-it-works">
+    <div class="section-inner">
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-subtitle">Three simple steps to your estimated home value.</p>
+
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Enter Details</h3>
+                <p>Tell us the area, location, bedrooms (BHK), and bathrooms of the property.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Model Predicts</h3>
+                <p>Our trained Linear Regression model runs the numbers against real Bangalore housing data.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Get Insights</h3>
+                <p>Receive a price estimate, a confidence score, and smart advisor tips instantly.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section highlights">
+    <div class="section-inner">
+        <h2 class="section-title">Why Use This Tool</h2>
+
+        <div class="highlight-grid">
+            <div class="highlight-card">
+                <div class="highlight-icon">⚡</div>
+                <h3>Instant Results</h3>
+                <p>Get a price estimate in seconds, with a realistic price range and price-per-sqft breakdown.</p>
+            </div>
+            <div class="highlight-card">
+                <div class="highlight-icon">📊</div>
+                <h3>Compare Properties</h3>
+                <p>Compare up to 3 property configurations side by side to see which offers the best value.</p>
+            </div>
+            <div class="highlight-card">
+                <div class="highlight-icon">🤖</div>
+                <h3>Smart Advisor</h3>
+                <p>Get contextual tips on ideal BHK, family suitability, parking, and space efficiency.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="section-inner cta-inner">
+        <h2>Ready to estimate your property's value?</h2>
+        <p>It only takes a few seconds — no sign-up required.</p>
+        <a href="{{ url_for('predict') }}" class="btn">Estimate Price Now</a>
+    </div>
+</section>
+
+{% endblock %}

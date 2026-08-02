@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard · Bangalore House Price Predictor{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/predict.css') }}">
+<style>
+    /* Power BI Dark Theme */
+    body, .dashboard-wrapper {
+        background-color: #1e1e1e !important;
+        font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        color: #e0e0e0;
+    }
+    .dashboard-wrapper {
+        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    .pb-box {
+        background-color: #252526;
+        border: 1px solid #333333;
+        border-radius: 4px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    .pb-title {
+        color: #ffffff;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 0;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #333333;
+        padding-bottom: 10px;
+    }
+
+    .summary-grid {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 20px;
+    }
+    .summary-item {
+        background-color: #252526; border: 1px solid #333333; border-radius: 4px; padding: 20px;
+        text-align: left; box-shadow: 0 4px 6px rgba(0,0,0,0.3); display: flex; flex-direction: column; justify-content: center;
+    }
+    .summary-item span { color: #a0a0a0; font-size: 0.9rem; margin-bottom: 8px; }
+    .summary-item strong { font-size: 1.6rem; color: #ffffff; font-weight: 600; }
+
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .chart-container { position: relative; height: 320px; }
+    .pie-container { grid-column: span 2; height: 360px; display: flex; justify-content: center; }
+
+    .filter-row { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
+    .filter-row select, .filter-row input {
+        background-color: #333333; border: 1px solid #444444; color: #e0e0e0; padding: 8px 12px;
+        border-radius: 3px; font-family: inherit; font-size: 0.95rem; min-width: 150px; outline: none;
+    }
+    .filter-row select:focus, .filter-row input:focus { border-color: #0078d4; }
+    .filter-row button {
+        background-color: #0078d4; border: none; color: #ffffff; padding: 8px 24px;
+        border-radius: 3px; font-size: 0.95rem; cursor: pointer; font-weight: 500; transition: background 0.2s;
+    }
+    .filter-row button:hover { background-color: #106ebe; }
+
+    @media (max-width: 768px) {
+        .summary-grid, .charts-grid { grid-template-columns: 1fr; }
+        .pie-container { grid-column: span 1; }
+        .filter-row select, .filter-row input { flex-grow: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <div class="pb-box">
+        <h2 class="pb-title">Analytics Dashboard</h2>
+        
+        <div class="filter-row" id="dashboardFilters">
+            <select id="filterLoc">
+                <option value="">All Locations</option>
+            </select>
+            <select id="filterBhk">
+                <option value="">All Configurations</option>
+                <option value="1">1 BHK</option>
+                <option value="2">2 BHK</option>
+                <option value="3">3 BHK</option>
+                <option value="4">4+ BHK</option>
+            </select>
+            <input type="number" id="filterMinP" placeholder="Min Price (Lakhs)">
+            <input type="number" id="filterMaxP" placeholder="Max Price (Lakhs)">
+            <button type="button" id="applyFiltersBtn">Apply Filters</button>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-item"><span>Average Price</span><strong id="avg-price">Loading...</strong></div>
+        <div class="summary-item"><span>Median Price</span><strong id="median-price">Loading...</strong></div>
+        <div class="summary-item"><span>Max Valuation Location</span><strong id="exp-loc">Loading...</strong></div>
+        <div class="summary-item"><span>Min Valuation Location</span><strong id="cheap-loc">Loading...</strong></div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="pb-box"><div class="chart-container"><canvas id="scatterChart"></canvas></div></div>
+        <div class="pb-box"><div class="chart-container"><canvas id="bhkChart"></canvas></div></div>
+        <div class="pb-box"><div class="chart-container"><canvas id="trendChart"></canvas></div></div>
+        <div class="pb-box"><div class="chart-container"><canvas id="sqftChart"></canvas></div></div>
+        <div class="pb-box pie-container"><div class="chart-container" style="width:100%; max-width:700px;"><canvas id="tierChart"></canvas></div></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
