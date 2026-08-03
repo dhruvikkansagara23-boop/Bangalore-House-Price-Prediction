@@ -22,6 +22,10 @@
 
 > ⚠️ *Hosted on Render's free tier — the first request after a period of inactivity may take ~30 seconds while the server wakes up.*
 
+
+- **Frontend (Vercel):** https://bangalore-house-price-prediction-rust.vercel.app/
+- **Backend API (Render):** https://bangalore-house-price-prediction-2xdu.onrender.com/
+
 ---
 
 ## 📸 Application Preview
