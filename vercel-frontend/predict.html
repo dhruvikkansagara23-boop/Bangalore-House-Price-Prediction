@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict · Bangalore House Price Predictor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="/static/css/base.css">
+    
+<link rel="stylesheet" href="/static/css/predict.css">
+
+</head>
+
+<body>
+
+<div class="bg-image"></div>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="navbar-inner">
+        <a href="/" class="brand">🏠 House Price <span>Predictor</span></a>
+
+        <button id="navToggle" class="nav-toggle" aria-label="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <ul id="navLinks" class="nav-links">
+            <li><a href="/" class="">Home</a></li>
+            <li><a href="/predict" class="active">Predict</a></li>
+            <li><a href="/compare" class="">Compare</a></li>
+            <li><a href="/dashboard" class="">Dashboard</a></li>
+            <li><a href="/history" class="">History</a></li>
+            <li><a href="/about" class="">About</a></li>
+        </ul>
+
+        <button id="themeToggle" class="theme-toggle" title="Toggle dark mode">🌙</button>
+    </div>
+</nav>
+
+<main>
+    
+
+<div class="container" id="predictorCard">
+
+    <div class="card">
+
+        <h2 class="card-title">📋 Property Information</h2>
+
+        <div class="form-grid">
+
+            <div class="field">
+                <label for="uiSqft">📐 Area (Square Feet)
+                    <span class="tooltip" data-tip="Minimum 300 sqft · Maximum 10,000 sqft">ⓘ</span>
+                </label>
+                <input
+                    type="number"
+                    id="uiSqft"
+                    class="area"
+                    placeholder="Enter Area in Sq. Ft."
+                    value="1000"
+                    min="300"
+                    max="10000"
+                    step="0.5"
+                >
+                <div id="areaError" class="error-message"></div>
+                <div id="areaWarning" class="warning-message"></div>
+            </div>
+
+            <div class="field">
+                <label>📍 Location</label>
+                <select class="location" id="uiLocations">
+                    <option value="" disabled selected>Choose Location</option>
+                </select>
+                <div id="locationError" class="error-message"></div>
+            </div>
+
+        </div>
+
+        <div class="field">
+            <label>🛏 Bedrooms (BHK)</label>
+            <div class="switch-field">
+                <input type="radio" id="radio-bhk-1" name="uiBHK" value="1">
+                <label for="radio-bhk-1">1</label>
+
+                <input type="radio" id="radio-bhk-2" name="uiBHK" value="2" checked>
+                <label for="radio-bhk-2">2</label>
+
+                <input type="radio" id="radio-bhk-3" name="uiBHK" value="3">
+                <label for="radio-bhk-3">3</label>
+
+                <input type="radio" id="radio-bhk-4" name="uiBHK" value="4">
+                <label for="radio-bhk-4">4</label>
+
+                <input type="radio" id="radio-bhk-5" name="uiBHK" value="5">
+                <label for="radio-bhk-5">5</label>
+
+                <input type="radio" id="radio-bhk-6" name="uiBHK" value="6">
+                <label for="radio-bhk-6">6</label>
+
+                <input type="radio" id="radio-bhk-7" name="uiBHK" value="7">
+                <label for="radio-bhk-7">7</label>
+            </div>
+            <div id="bhkError" class="error-message"></div>
+            <div id="bhkSuggestion" class="suggestion-message"></div>
+        </div>
+
+        <div class="field">
+            <label>🛁 Bathrooms</label>
+            <div class="switch-field">
+                <input type="radio" id="radio-bath-1" name="uiBathrooms" value="1">
+                <label for="radio-bath-1">1</label>
+
+                <input type="radio" id="radio-bath-2" name="uiBathrooms" value="2" checked>
+                <label for="radio-bath-2">2</label>
+
+                <input type="radio" id="radio-bath-3" name="uiBathrooms" value="3">
+                <label for="radio-bath-3">3</label>
+
+                <input type="radio" id="radio-bath-4" name="uiBathrooms" value="4">
+                <label for="radio-bath-4">4</label>
+
+                <input type="radio" id="radio-bath-5" name="uiBathrooms" value="5">
+                <label for="radio-bath-5">5</label>
+
+                <input type="radio" id="radio-bath-6" name="uiBathrooms" value="6">
+                <label for="radio-bath-6">6</label>
+
+                <input type="radio" id="radio-bath-7" name="uiBathrooms" value="7">
+                <label for="radio-bath-7">7</label>
+            </div>
+            <div id="bathError" class="error-message"></div>
+        </div>
+        
+        <div class="field">
+            <label>🗺 Map View</label>
+            <div id="propertyMap" style="height: 250px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-alt);"></div>
+        </div>
+
+        <button class="submit" type="button" id="estimateBtn" onclick="onClickedEstimatePrice()">
+            <span id="btnText">Estimate Price</span>
+            <span id="btnSpinner" class="spinner" style="display:none;"></span>
+        </button>
+
+    </div>
+
+    <!-- Wrapper for PDF Export to capture both summary and result -->
+    <div id="pdfExportWrapper">
+
+        <!-- Property Summary (shown before prediction result) -->
+        <div class="card summary-card" id="summaryCard" style="display:none;">
+            <h2 class="card-title">📋 Property Summary</h2>
+            <div class="summary-grid">
+                <div><span>📐 Area</span><strong id="sumArea">-</strong></div>
+                <div><span>🛏 Bedrooms</span><strong id="sumBhk">-</strong></div>
+                <div><span>🛁 Bathrooms</span><strong id="sumBath">-</strong></div>
+                <div><span>📍 Location</span><strong id="sumLocation">-</strong></div>
+            </div>
+        </div>
+
+        <!-- Result card -->
+        <div class="card result-card" id="resultCard" style="display:none;">
+
+            <div class="result-header">
+                <span>Estimated Market Value</span>
+                <button id="downloadPdfBtn" class="submit" style="padding: 5px 15px; font-size: 0.9rem; max-width: 150px; margin: 0;">💾 Download PDF</button>
+            </div>
+
+            <div id="uiEstimatedPrice" class="price-display"></div>
+
+            <div id="pricePerSqft" class="price-per-sqft"></div>
+
+            <div id="priceRange" class="price-range" style="font-size: 1.1em; margin-bottom: 15px; color: #a1a1aa;"></div>
+            <div id="idealBhkHint" class="ideal-bhk-hint"></div>
+
+            <div class="category-row">
+                <span id="priceCategory" class="category-badge"></span>
+                <span id="ratingStars" class="rating-stars"></span>
+            </div>
+            
+            <div class="category-row" style="margin-top: 10px;">
+                <span id="locationScoreBadge" class="category-badge" style="background: rgba(37, 99, 235, 0.2); color: #60a5fa;">📍 Location Score: -</span>
+                <span id="dealScoreBadge" class="category-badge" style="background: rgba(22, 163, 74, 0.2); color: #4ade80;">🏷 Deal Score: -</span>
+            </div>
+
+            <div class="confidence-block">
+                <div class="confidence-label">
+                    <span>Prediction Confidence</span>
+                    <span id="confidenceValue">-</span>
+                </div>
+                <div class="confidence-bar">
+                    <div id="confidenceFill" class="confidence-fill"></div>
+                </div>
+            </div>
+            
+            <div class="ai-explanation-block" style="background: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left;">
+                <h3 style="margin-bottom: 10px; font-size: 1.1em; color: #94a3b8;">🧠 AI Price Explanation</h3>
+                <ul id="aiExplanationList" style="list-style-type: none; padding-left: 0; margin: 0; color: #cbd5e1; font-size: 0.9em; line-height: 1.5;"></ul>
+            </div>
+
+            <div class="chart-block">
+                <div class="chart-row">
+                    <span>Area</span>
+                    <div class="chart-track"><div id="barArea" class="chart-fill"></div></div>
+                </div>
+                <div class="chart-row">
+                    <span>Bedrooms</span>
+                    <div class="chart-track"><div id="barBhk" class="chart-fill"></div></div>
+                </div>
+                <div class="chart-row">
+                    <span>Bathrooms</span>
+                    <div class="chart-track"><div id="barBath" class="chart-fill"></div></div>
+                </div>
+            </div>
+
+            <div id="successMessage" class="success-message">✔ Prediction completed successfully</div>
+
+            <div class="advisor-block" style="margin-top: 15px;">
+                <h3 style="color: #94a3b8;">🤖 Smart Advisor</h3>
+                <ul id="advisorList"></ul>
+            </div>
+            
+            <div class="advisor-block" style="margin-top: 15px; border-top: 1px solid #334155; padding-top: 15px;">
+                <h3 style="color: #94a3b8;">📊 Deal Insights</h3>
+                <ul id="dealInsightsList" style="list-style-type: disc; padding-left: 20px; margin: 0; color: #cbd5e1; font-size: 0.9em; text-align: left;"></ul>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Recent Estimates history -->
+    <div class="card history-card" id="historyCard" style="display:none;">
+        <div class="history-header">
+            <h2 class="card-title">🕘 Recent Estimates</h2>
+            <button type="button" id="clearHistoryBtn" class="clear-btn">Clear</button>
+        </div>
+        <ul id="historyList" class="history-list"></ul>
+    </div>
+
+    <div id="predictionErrorCard" class="card error-card" style="display:none;"></div>
+
+</div>
+
+
+</main>
+
+<footer class="footer">
+    <p>Built with <strong>Flask</strong> &amp; <strong>Scikit-learn</strong> · Bangalore House Price Predictor &copy; 2026</p>
+</footer>
+
+<script src="/static/js/config.js"></script>
+<script src="/static/js/base.js"></script>
+
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<!-- jsPDF & html2canvas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script src="/static/js/map.js"></script>
+<script src="/static/js/predict.js"></script>
+
+
+</body>
+
+</html>

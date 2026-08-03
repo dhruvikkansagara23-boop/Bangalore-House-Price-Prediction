@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History · Bangalore House Price Predictor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="/static/css/base.css">
+    
+<link rel="stylesheet" href="/static/css/predict.css">
+<style>
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    .history-table th, .history-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .history-table th {
+        background-color: var(--bg-alt);
+        color: var(--text-primary);
+    }
+    .history-table tr:hover {
+        background-color: rgba(255, 255, 255, 0.02);
+    }
+    .btn-small {
+        padding: 5px 10px;
+        font-size: 0.85rem;
+        border-radius: 4px;
+        cursor: pointer;
+        border: none;
+        color: white;
+        text-decoration: none;
+    }
+    .btn-pdf { background-color: var(--accent); }
+    .btn-del { background-color: #ef4444; margin-left: 5px;}
+</style>
+
+</head>
+
+<body>
+
+<div class="bg-image"></div>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="navbar-inner">
+        <a href="/" class="brand">🏠 House Price <span>Predictor</span></a>
+
+        <button id="navToggle" class="nav-toggle" aria-label="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <ul id="navLinks" class="nav-links">
+            <li><a href="/" class="">Home</a></li>
+            <li><a href="/predict" class="">Predict</a></li>
+            <li><a href="/compare" class="">Compare</a></li>
+            <li><a href="/dashboard" class="">Dashboard</a></li>
+            <li><a href="/history" class="active">History</a></li>
+            <li><a href="/about" class="">About</a></li>
+        </ul>
+
+        <button id="themeToggle" class="theme-toggle" title="Toggle dark mode">🌙</button>
+    </div>
+</nav>
+
+<main>
+    
+<div class="container">
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="card-title" style="margin-bottom: 0;">🕘 Prediction History</h2>
+            <a href="https://bangalore-house-price-prediction-2xdu.onrender.com/export/csv" class="btn-small" style="background-color: #10b981;">Download CSV</a>
+        </div>
+        <div style="overflow-x: auto; margin-top: 15px;">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Area</th>
+                        <th>BHK</th>
+                        <th>Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body">
+                    <tr><td colspan="6" style="text-align: center;">Loading history...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</main>
+
+<footer class="footer">
+    <p>Built with <strong>Flask</strong> &amp; <strong>Scikit-learn</strong> · Bangalore House Price Predictor &copy; 2026</p>
+</footer>
+
+<script src="/static/js/config.js"></script>
+<script src="/static/js/base.js"></script>
+
+<script src="/static/js/history.js"></script>
+
+
+</body>
+
+</html>
