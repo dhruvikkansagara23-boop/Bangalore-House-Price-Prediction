@@ -1,40 +1,50 @@
 <div align="center">
+
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white" alt="Flask" />
   <img src="https://img.shields.io/badge/scikit_learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" alt="Scikit-Learn" />
+  <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite" />
+  <img src="https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white" alt="Chart.js" />
+  <img src="https://img.shields.io/badge/Leaflet-199900?style=for-the-badge&logo=leaflet&logoColor=white" alt="Leaflet" />
   <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5" />
   <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
   <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
   <img src="https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white" alt="Render" />
+  <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
+
+  <br /><br />
+
+  <h1>🏠 Bangalore House Price Predictor</h1>
+
+  <p><strong> full-stack Machine Learning web application</strong> that predicts residential property prices across 240+ Bangalore locations — powered by a Linear Regression model trained on 13,000+ real housing records.</p>
+
+  <p>
+    <a href="https://bangalore-house-price-prediction-rust.vercel.app/"><img src="https://img.shields.io/badge/🌐 Live App-Vercel-black?style=flat-square" /></a>
+    <a href="https://bangalore-house-price-prediction-2xdu.onrender.com/"><img src="https://img.shields.io/badge/⚙️ API-Render-46E3B7?style=flat-square" /></a>
+    <img src="https://img.shields.io/badge/Model Accuracy-~95%25-brightgreen?style=flat-square" />
+    <img src="https://img.shields.io/badge/Locations-240+-blue?style=flat-square" />
+    <img src="https://img.shields.io/badge/Dataset-13%2C320 rows-orange?style=flat-square" />
+  </p>
+
 </div>
-
-<h1 align="center">🏠 Bangalore House Price Prediction using Machine Learning</h1>
-
-<p align="center">
-  A Machine Learning web application that predicts <strong>Bangalore house prices</strong> based on property features such as <strong>Area, BHK, Bathrooms, and Location</strong>. The application is built with Python, Flask, Scikit-learn, HTML, CSS, and vanilla JavaScript, and is fully deployed on Render.
-</p>
 
 ---
 
-## 🌐 Live Demo
+## 🌐 Live Deployments
 
-🔗 **[Live Website](https://bangalore-house-price-prediction-2xdu.onrender.com/)**
+| Service | URL | Platform |
+|---|---|---|
+| **Frontend** | https://bangalore-house-price-prediction-rust.vercel.app/ | Vercel |
+| **Backend API** | https://bangalore-house-price-prediction-2xdu.onrender.com/ | Render |
 
-> ⚠️ *Hosted on Render's free tier — the first request after a period of inactivity may take ~30 seconds while the server wakes up.*
-
-
-- **Frontend (Vercel):** https://bangalore-house-price-prediction-rust.vercel.app/
-- **Backend API (Render):** https://bangalore-house-price-prediction-2xdu.onrender.com/
+> ⚠️ *Hosted on Render's free tier — the first request after inactivity may take ~30 seconds while the server wakes up.*
 
 ---
 
 ## 📸 Application Preview
 
-*(Create an `assets` folder and add your screenshots here)*
-
 ```
 assets/
-│
 ├── home.png
 ├── prediction.png
 ```
@@ -46,111 +56,160 @@ assets/
 
 ## 📖 Project Overview
 
-The Bangalore House Price Prediction System is a regression-based Machine Learning application that estimates residential property prices using a trained Linear Regression model.
+The **Bangalore House Price Predictor** is a regression-based Machine Learning application that estimates residential property prices using a trained Linear Regression model. It goes well beyond a simple prediction widget — it's a full-featured real estate intelligence platform with explainable AI, analytics, comparison tools, PDF reporting, map integration, and persistent history tracking.
 
 **Users can enter:**
 - 📐 **Area** (Square Feet)
 - 🛏 **Number of Bedrooms** (BHK)
 - 🛁 **Number of Bathrooms**
-- 📍 **Location**
+- 📍 **Location** (240+ Bangalore localities)
 
-The trained model predicts the estimated property price instantly through a Flask REST API, along with a price range, confidence score, category, and personalized insights.
+The model instantly returns a predicted price along with a confidence interval, deal quality score, AI-driven insights, and market positioning data — all through a clean, responsive interface.
 
 ---
 
-## ✨ Features
+## ✨ Full Feature Set
 
-### 🎯 Core Prediction
-- 🏠 Predict Bangalore house prices instantly.
-- 📍 Dynamic Location Dropdown (240+ locations), with a clear loading state while it fetches.
-- ⚡ Flask REST API Backend, called via native `fetch()` (no external JS library dependency).
+### 🎯 Core Prediction Engine
+- Instant price estimation in **Lakhs** or **Crore** (auto-formatted)
+- Confidence interval display (±% price range)
+- **Price per sqft** breakdown
+- Price category badge: *Budget / Mid-Range / Premium / Luxury* with star rating
+- Prediction confidence meter (visual indicator)
+- Mini bar-charts comparing area, BHK, and bathroom counts
 
-### 🛡️ Smart Validation
-- 📐 **Area Validation** (300 – 10,000 sqft).
-- 🛏 **BHK Selection** (1–7), checked against area using an area-per-bedroom ratio rather than a rigid lookup table.
-- 🛁 **Bathroom Selection** (1–7), validated against BHK (*Bathrooms ≥ BHK − 1 and ≤ BHK + 2*).
-- 🚫 Invalid bathroom options disabled automatically based on selected BHK.
-- 🔄 Live re-validation — errors appear/clear instantly as you change any field, not just on submit.
-- ⚠ Inline warnings for unusually large properties (luxury-area threshold).
-- 💡 Non-blocking suggestions when a spacious area could support more bedrooms.
-- ❌ Clear, inline error messages instead of browser alerts.
+### ⭐ Deal Quality Score
+- Property scored out of 10 based on:
+  - Market-relative pricing
+  - Price per sqft benchmark
+  - Location demand index
 
-### 📊 Prediction Insights
-- 💰 Estimated price displayed in **Lakhs** or **Crore** automatically.
-- 📊 Possible price range (±7% of estimate).
-- 🏷 Price category badge (*Budget / Mid-Range / Premium / Luxury*) with star rating.
-- 📈 Prediction confidence meter.
-- 📶 Mini bar-charts for area, bedrooms, and bathrooms.
-- 🤖 Smart Advisor — contextual tips generated from the entered property configuration.
-- 📋 Property Summary card shown alongside the prediction.
+### 📍 Location Intelligence
+- Location scoring system (Premium Area / Growth Zone / etc.)
+- Demand trend highlights and pricing zone classification
+
+### 🧠 AI Price Explainability
+- Transparent breakdown of *why* a property has its estimated price
+- Factors: location impact, area contribution, BHK/bathroom influence
+- Contextual Smart Advisor with family suitability, investment potential, and space efficiency tips
+
+### 📊 Property Comparison Tool
+- Compare **up to 3 properties** side-by-side
+- Automatically highlights: Best Value, Most Expensive, Balanced Option
+
+### 📈 Analytics Dashboard
+- Aggregated dataset-level insights:
+  - Average, median, max, and min valuation locations
+- Interactive visualizations: Pie charts, Bar charts, Scatter plots (via Chart.js)
+
+### 🕘 Prediction History
+- Persistent history via SQLite
+- Features: Download as CSV, Generate PDF reports, Delete entries
+
+### 📄 PDF Report Generation
+- Export professional property valuation reports
+- Includes prediction, deal score, and AI insights
+
+### 🗺️ Map Integration
+- Displays selected property location on an interactive map
+- Built with OpenStreetMap + Leaflet.js
+
+### 🛡️ Smart Validation (Live, Client-Side)
+
+All validation fires in real time — no submit required.
+
+**Hard Blocks** *(prediction prevented until resolved)*
+
+| # | Rule | Condition | Message |
+|---|---|---|---|
+| 1 | Area required | Empty or non-numeric field | ⚠ Please enter the property area. |
+| 2 | Area too small | Area < 300 sqft | ❌ Area cannot be less than 300 sqft. |
+| 3 | Area too large | Area > 10,000 sqft | ❌ Area exceeds the supported limit. |
+| 4 | Too many bedrooms | BHK > `floor(area ÷ 220)` | ❌ [area] sqft is too small for [BHK] BHK. |
+| 5 | Too many bathrooms | Bathrooms > BHK + 2 | ❌ [BHK] BHK cannot have [bath] bathrooms. |
+| 6 | Too few bathrooms | Bathrooms < BHK − 1 | ❌ Too few bathrooms for a [BHK] BHK. |
+| 7 | No location | Dropdown left unselected | ⚠ Please select a location before predicting. |
+
+**Soft Warnings & Suggestions**
+- **Area > 3,000 sqft:** ⚠ *Large property detected. Prediction accuracy may be slightly lower.*
+- **Low bedroom count:** 💡 *This area could comfortably support more bedrooms.*
+
+**Automatic UI Behavior**
+- Bathroom options outside `[BHK−1, BHK+2]` are dynamically disabled
+- Bathroom auto-resets to valid value on BHK change
+- Live re-validation on every keystroke and click
 
 ### 🎨 UI / UX
-- 🎨 Modern, card-based UI with a hero section.
-- 🌗 Light / Dark mode toggle (persisted across visits).
-- 📱 Fully responsive design (desktop, tablet, mobile).
-- ⏳ Loading state with spinner while a prediction is in progress.
-- ✅ Animated result reveal with success confirmation.
-
-### ☁️ Deployment
-- Deployed on **Render** with auto-deploy on push to `main`.
+- Modern card-based layout with a hero section
+- 🌗 Light / Dark mode toggle (persisted across visits)
+- 📱 Fully responsive (desktop, tablet, mobile)
+- ⏳ Loading spinner during prediction requests
+- ✅ Animated result reveal with success confirmation
+- Dynamic Location Dropdown (240+ localities) with visual loading state
 
 ---
 
-## 🛠 Technologies Used
-
-| Category | Technologies |
-|---|---|
-| **Programming Language** | Python |
-| **Frontend** | HTML5, CSS3, Vanilla JavaScript (`fetch` API) |
-| **Backend** | Flask, Flask-CORS, Gunicorn |
-| **Machine Learning** | NumPy, Pandas, Scikit-learn, Joblib |
-| **Deployment** | Render |
-| **Version Control** | Git, GitHub |
-
----
-
-## 🧠 Machine Learning Workflow
+## 🧠 Machine Learning Pipeline
 
 ```mermaid
 graph TD;
-    A[Dataset] --> B[Data Cleaning];
+    A[Raw Dataset — Kaggle] --> B[Data Cleaning];
     B --> C[Feature Engineering];
     C --> D[Outlier Removal];
-    D --> E[One Hot Encoding];
-    E --> F[Train Test Split];
+    D --> E[One Hot Encoding — Locations];
+    E --> F[Train / Test Split];
     F --> G[Linear Regression];
-    G --> H[Model Evaluation];
-    H --> I[Model Serialization];
-    I --> J[Flask API];
+    G --> H[Cross-Validation Evaluation];
+    H --> I[Model Serialization — Joblib];
+    I --> J[Flask REST API];
     J --> K[Web Application];
 ```
 
+**Key ML Steps:**
+- `total_sqft` column cleaned and averaged from range strings (e.g. `1100–1200` → `1150`)
+- Locations reduced from 1,287 to 241 by grouping low-frequency ones as `"other"`
+- Area-per-BHK ratio applied for realistic bedroom-size constraints
+- Outlier removal using standard deviation thresholds per location
+- Model serialized with `joblib` as `.pickle` for fast inference
+
 ---
 
-## 📊 Dataset Information
+## 📊 Dataset
 
 | Property | Details |
-|----------|----------|
-| **Dataset** | Bengaluru House Data |
+|---|---|
+| **Name** | Bengaluru House Data |
 | **Source** | Kaggle |
 | **Rows** | 13,320 |
 | **Columns** | 9 |
-| **ML Problem** | Regression |
+| **Locations** | 240+ |
+| **ML Task** | Regression |
+| **Model** | Linear Regression |
+| **Accuracy** | ~95% Confidence |
 
 ---
 
-## 🏗 Project Architecture
+## 🏗️ System Architecture
 
 ```mermaid
 graph TD;
-    U[User] -->|Interacts| UI[HTML / CSS / JavaScript];
-    UI -->|API Request| FB[Flask Backend];
-    FB --> UT[util.py];
-    FB --> TM[Trained Model];
-    UT --> TM;
-    TM -->|Price Prediction| FB;
-    FB -->|JSON Response| CI[Client-side Insights];
-    CI -->|Displays| UI;
+    U[User Browser] -->|Interacts| FE[Frontend — HTML / CSS / JS];
+    FE -->|fetch API calls| FB[Flask Backend — Render];
+    FB --> PR[prediction_routes.py];
+    FB --> HR[history_routes.py];
+    FB --> AR[analytics_routes.py];
+    PR --> PS[prediction_service.py];
+    PR --> DS[deal_score_service.py];
+    PR --> ES[explainability_service.py];
+    PR --> AS[advisor_service.py];
+    PS --> MODEL[Trained Model .pickle];
+    PS --> COL[columns.json];
+    HR --> DB[(SQLite — app.db)];
+    AR --> DB;
+    FB -->|JSON Response| FE;
+    FE -->|Renders| CHARTS[Chart.js Visualizations];
+    FE -->|Renders| MAP[Leaflet.js Map];
+    FE -->|Exports| PDF[PDF Report];
 ```
 
 ---
@@ -158,172 +217,230 @@ graph TD;
 ## 📂 Project Structure
 
 ```text
-Banglore_house_price_prediction/
+Bangalore-House-Price-Prediction/
 │
-├── client/
+├── Bengaluru_House_Data.csv        # Raw dataset
+├── requirements.txt                # Root dependencies
+├── wsgi.py                         # WSGI entry point
 │
 ├── jnotebook/
-│   ├── BHP.ipynb
+│   ├── BHP.ipynb                   # Model training notebook
 │   ├── banglore_home_prices_model.pickle
 │   └── columns.json
 │
-├── project/                     # (or server/)
+├── server/                         # Flask backend
+│   ├── app.py                      # App factory & entry point
+│   ├── config.py                   # Environment config
+│   ├── app.db                      # SQLite database
+│   │
 │   ├── artifacts/
 │   │   ├── banglore_home_prices_model.pickle
 │   │   └── columns.json
-│   ├── static/
-│   ├── templates/
+│   │
 │   ├── routes/
+│   │   ├── prediction_routes.py
+│   │   ├── history_routes.py
+│   │   └── analytics_routes.py
+│   │
 │   ├── services/
+│   │   ├── prediction_service.py
+│   │   ├── advisor_service.py
+│   │   ├── deal_score_service.py
+│   │   ├── explainability_service.py
+│   │   ├── location_service.py
+│   │   ├── analytics_service.py
+│   │   └── pdf_service.py
+│   │
 │   ├── database/
-│   ├── app.py
-│   └── util.py
+│   │   ├── db.py
+│   │   └── models.py
+│   │
+│   ├── utils/
+│   │   └── helpers.py
+│   │
+│   ├── static/
+│   │   ├── css/                    # Per-page stylesheets
+│   │   └── js/                     # Per-page scripts
+│   │
+│   └── templates/                  # Jinja2 HTML templates
+│       ├── home.html
+│       ├── predict.html
+│       ├── compare.html
+│       ├── dashboard.html
+│       ├── history.html
+│       └── about.html
 │
-├── Bengaluru_House_Data.csv
-├── requirements.txt
-├── README.md
-├── LICENSE
-└── .gitignore
+└── vercel-frontend/                # Decoupled static frontend (Vercel)
+    ├── index.html
+    ├── predict.html
+    ├── compare.html
+    ├── dashboard.html
+    ├── history.html
+    ├── about.html
+    ├── vercel.json
+    └── static/
+        ├── css/
+        └── js/
+            └── config.js           # API base URL config for Vercel build
 ```
 
 ---
 
-## ⚙️ Installation Guide
+## 🛠️ Technologies Used
 
-**1. Clone Repository**
+| Category | Technologies |
+|---|---|
+| **Language** | Python 3.10+ |
+| **Backend** | Flask, Flask-CORS, Gunicorn |
+| **Machine Learning** | Scikit-learn, NumPy, Pandas, Joblib |
+| **Database** | SQLite (via Flask-SQLAlchemy) |
+| **Frontend** | HTML5, CSS3, Vanilla JavaScript (Fetch API) |
+| **Visualizations** | Chart.js (analytics), Leaflet.js (maps) |
+| **PDF Export** | ReportLab / pdf_service.py |
+| **Deployment** | Render (backend), Vercel (frontend) |
+| **Version Control** | Git, GitHub |
+
+---
+
+## ⚙️ Local Installation
+
+**1. Clone the repository**
 ```bash
 git clone https://github.com/dhruvikkansagara23-boop/Bangalore-House-Price-Prediction.git
-```
-
-**2. Move into Project**
-```bash
 cd Bangalore-House-Price-Prediction
 ```
 
-**3. Install Dependencies**
+**2. Install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-**4. Start Flask Server**
+**3. Start the Flask server**
 ```bash
-cd project  # Note: Navigate to wherever app.py is located
+cd server
 python app.py
 ```
 
-**5. Open Browser**
-```text
+**4. Open in browser**
+```
 http://127.0.0.1:5000
 ```
 
+> The frontend in `vercel-frontend/` is a standalone static build. Open `index.html` directly or point `config.js` to your local API.
+
 ---
 
-## 🚀 API Endpoints
+## 🚀 API Reference
 
-### Get Locations
+### Get All Locations
 ```http
 GET /get_location_names
 ```
-**Response:**
 ```json
 {
-  "locations": ["whitefield", "electronic city", "indira nagar"]
+  "locations": ["whitefield", "electronic city", "indira nagar", "..."]
 }
 ```
 
-### Predict Price
+### Predict House Price
 ```http
 POST /predict_home_price
 ```
-**Parameters:**
-`sqft`, `bhk`, `bath`, `location`
+| Parameter | Type | Description |
+|---|---|---|
+| `sqft` | `float` | Total area in square feet |
+| `bhk` | `int` | Number of bedrooms |
+| `bath` | `int` | Number of bathrooms |
+| `location` | `string` | One of 240+ supported localities |
 
-**Response:**
 ```json
 {
-   "estimated_price": 83.52
+  "estimated_price": 83.52
 }
+```
+
+### Get Prediction History
+```http
+GET /history
+```
+
+### Download History as CSV
+```http
+GET /history/download/csv
+```
+
+### Generate PDF Report
+```http
+POST /history/report/pdf
+```
+
+### Analytics Overview
+```http
+GET /analytics/overview
 ```
 
 ---
 
-## 📌 Validation Rules
+## ☁️ Render Deployment
 
-All validation happens client-side, live, as you interact with the form — no need to click "Estimate Price" to see errors appear or clear.
-
-### 🚫 Hard Blocks
-*(Prediction is prevented until fixed)*
-
-| # | Rule | Condition | Message |
-|---|---|---|---|
-| 1 | Area required | Empty or non-numeric area field | ⚠ Please enter the property area. |
-| 2 | Area too small | Area < 300 sqft | ❌ Area cannot be less than 300 sqft. |
-| 3 | Area too large | Area > 10,000 sqft | ❌ Area exceeds the supported limit. |
-| 4 | Too many bedrooms | BHK exceeds `floor(area ÷ 220)` | ❌ [area] sqft is too small for [BHK] BHK. |
-| 5 | Too many bathrooms| Bathrooms > BHK + 2 | ❌ [BHK] BHK cannot have [bath] bathrooms. |
-| 6 | Too few bathrooms | Bathrooms < BHK − 1 | ❌ Too few bathrooms for a [BHK] BHK. |
-| 7 | No location | Location dropdown left empty | ⚠ Please select a location before predicting. |
-
-### ⚠ Warnings & Soft Suggestions
-- **Large property (Area > 3,000 sqft):** ⚠ *Large property detected. Prediction accuracy may be slightly lower.*
-- **Bedroom count looks low:** 💡 *This area could comfortably support more bedrooms.*
-
-### 🔄 Automatic UI Behavior
-- Any bathroom radio outside `[BHK−1, BHK+2]` is dynamically disabled and unclickable.
-- Bathroom auto-resets to a valid value if currently selected count falls outside the new valid range after a BHK change.
-- Live re-validation on every keystroke or click.
+| Setting | Value |
+|---|---|
+| **Build Command** | `pip install -r requirements.txt` |
+| **Start Command** | `cd server && gunicorn app:app` |
+| **Environment Variable** | `PYTHON_VERSION = 3.10` |
 
 ---
 
-## ☁️ Render Deployment Guide
+## 🩹 Changelog & Fixes
 
-To deploy this project to Render flawlessly, use the following settings when creating your **Web Service**:
-
-1. **Build Command:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. **Start Command:**
-   ```bash
-   cd project && gunicorn app:app
-   ```
-   *(Note: Ensure you `cd` into the directory where `app.py` is located. If it's named `server`, use `cd server && gunicorn app:app`)*
-
-3. **Environment Variables:**
-   - `PYTHON_VERSION`: `3.10` (or whichever version you prefer)
+| Version | Change |
+|---|---|
+| **v2.0** | Full service-layer architecture, SQLite history, analytics dashboard, map integration, PDF export, property comparison |
+| **v1.2** | Replaced jQuery CDN with native `fetch()` — fixed `$ is not defined` errors |
+| **v1.1** | Smart proportional BHK validation (replaced rigid lookup table); bathroom auto-reset on BHK change |
+| **v1.0** | Initial release: Linear Regression model, Flask API, basic HTML frontend, Render deployment |
 
 ---
 
-## 🩹 Recent Fixes & Changelog
+## 📈 Roadmap
 
-- **Removed jQuery CDN dependency:** Replaced all AJAX calls with native `fetch()` to fix `$ is not defined` errors.
-- **Smart BHK Validation:** Replaced rigid BHK-vs-area lookup table with a proportional area-per-bedroom check, fixing false-positive blocks.
-- **Bathroom Logic:** Fixed auto-resetting bug when changing BHK values. Live validation messages now clear dynamically via a `change` event listener.
-- **Location Loading State:** Added a visual spinner and disabled the Estimate button to prevent submissions before the locations have finished fetching.
+- [ ] XGBoost / Random Forest model comparison
+- [ ] Recommendation engine (similar properties)
+- [ ] Price alert & watchlist system
+- [ ] AI Chat Assistant for property Q&A
+- [ ] Heatmaps & geo-intelligence overlays
+- [ ] User authentication & saved profiles
+- [ ] Mobile app version
+- [ ] House image upload with visual feature extraction
+- [ ] Real-time market trend integration
 
 ---
 
-## 📈 Future Enhancements
+## ⚠️ Limitations
 
-- [ ] XGBoost Model / Random Forest Comparison
-- [ ] House Image Upload
-- [ ] Interactive Price Visualization (advanced charts)
-- [ ] Google Maps Integration
-- [ ] Nearby Schools & Hospitals
-- [ ] User Authentication
-- [ ] Downloadable / Shareable Prediction Report
-- [ ] Mobile App Version
+Predictions are **statistical estimates**, not formal valuations. The model does not currently account for:
+- Property condition or age
+- Floor number or view
+- Amenities (gym, parking, pool)
+- Real-time market fluctuations
 
 ---
 
 ## 👨‍💻 Author
 
-**Dhruvik Kansagra**  
-*MCA Student | Data Science & Machine Learning Enthusiast*  
-GitHub: [@dhruvikkansagara23-boop](https://github.com/dhruvikkansagara23-boop)
+**Dhruvik Kansagra**
+*MCA Student | Data Science & Machine Learning Enthusiast*
+
+[![GitHub](https://img.shields.io/badge/GitHub-@dhruvikkansagara23--boop-181717?style=flat-square&logo=github)](https://github.com/dhruvikkansagara23-boop)
 
 ---
 
 ## ⭐ Support
 
-If you found this project useful, consider giving it a ⭐ on GitHub!
+If this project helped you or you found it interesting, consider giving it a ⭐ on GitHub — it helps others discover it!
+
+---
+
+<div align="center">
+  <sub>Built with 🧠 ML + 🐍 Python + ☕ persistence by Dhruvik Kansagara</sub>
+</div>
