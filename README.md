@@ -2,6 +2,7 @@
 
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white" alt="Flask" />
+  <img src="https://img.shields.io/badge/Gunicorn-499848?style=for-the-badge&logo=gunicorn&logoColor=white" alt="Gunicorn" />
   <img src="https://img.shields.io/badge/scikit_learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" alt="Scikit-Learn" />
   <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite" />
   <img src="https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white" alt="Chart.js" />
@@ -16,7 +17,7 @@
 
   <h1>🏠 Bangalore House Price Predictor</h1>
 
-  <p><strong> full-stack Machine Learning web application</strong> that predicts residential property prices across 240+ Bangalore locations — powered by a Linear Regression model trained on 13,000+ real housing records.</p>
+  <p><strong>A full-stack Machine Learning web application</strong> that predicts residential property prices across 240+ Bangalore locations — powered by a Linear Regression model trained on 13,000+ real housing records.</p>
 
   <p>
     <a href="https://bangalore-house-price-prediction-rust.vercel.app/"><img src="https://img.shields.io/badge/🌐 Live App-Vercel-black?style=flat-square" /></a>
@@ -56,7 +57,7 @@ assets/
 
 ## 📖 Project Overview
 
-The **Bangalore House Price Predictor** is a regression-based Machine Learning application that estimates residential property prices using a trained Linear Regression model. It goes well beyond a simple prediction widget — it's a full-featured real estate intelligence platform with explainable AI, analytics, comparison tools, PDF reporting, map integration, and persistent history tracking.
+Most house-price demos stop at "enter numbers, get a price." This one doesn't. The **Bangalore House Price Predictor** started as a single Linear Regression notebook and grew into a full real-estate intelligence platform — explainable AI, deal scoring, market analytics, map context, PDF reporting, and a persistent history layer, all wrapped around the same core model.
 
 **Users can enter:**
 - 📐 **Area** (Square Feet)
@@ -172,6 +173,19 @@ graph TD;
 - Outlier removal using standard deviation thresholds per location
 - Model serialized with `joblib` as `.pickle` for fast inference
 
+### 🔁 Retraining the Model
+
+The model isn't a black box shipped with the repo — it's fully reproducible from the notebook:
+
+1. Open `jnotebook/BHP.ipynb` in Jupyter or VS Code.
+2. Run all cells top to bottom. The notebook reads `Bengaluru_House_Data.csv`, walks through cleaning, outlier removal, and one-hot encoding, then trains and cross-validates the Linear Regression model.
+3. The final cells serialize two artifacts:
+   - `banglore_home_prices_model.pickle` — the trained model
+   - `columns.json` — the ordered feature/column schema the Flask API needs to build prediction inputs correctly
+4. Copy both output files into `server/artifacts/` to put the retrained model into production. (A duplicate copy also lives in `jnotebook/` from the original training run — keep both in sync if you retrain.)
+
+> ⚠️ If you change the feature set or column order in the notebook, `columns.json` **must** match what `prediction_service.py` expects, or predictions will silently misalign.
+
 ---
 
 ## 📊 Dataset
@@ -216,26 +230,32 @@ graph TD;
 
 ## 📂 Project Structure
 
+The application lives in `server/` — that's the version actually deployed to Render. Root-level `routes/`, `services/`, `database/`, and `utils/` are earlier, pre-refactor copies kept in the repo for reference during the service-layer migration; they are **not** imported by the running app. If you're contributing, work inside `server/`.
+
 ```text
 Bangalore-House-Price-Prediction/
 │
 ├── Bengaluru_House_Data.csv        # Raw dataset
-├── requirements.txt                # Root dependencies
-├── wsgi.py                         # WSGI entry point
+├── requirements.txt                # Root dependencies (used for local/dev installs)
+├── test.py                         # Ad-hoc script for manually exercising the prediction pipeline
+├── wsgi.py                         # WSGI entry point (alternative to `app:app` — see Deployment)
+│
+├── routes/ services/ database/ utils/   # Legacy pre-refactor copies — superseded by server/*, kept for reference
 │
 ├── jnotebook/
-│   ├── BHP.ipynb                   # Model training notebook
-│   ├── banglore_home_prices_model.pickle
-│   └── columns.json
+│   ├── BHP.ipynb                   # Model training / retraining notebook
+│   ├── banglore_home_prices_model.pickle   # Original training-run output
+│   └── columns.json                # Original feature schema output
 │
-├── server/                         # Flask backend
+├── server/                         # Flask backend (this is what's deployed)
 │   ├── app.py                      # App factory & entry point
 │   ├── config.py                   # Environment config
 │   ├── app.db                      # SQLite database
+│   ├── requirements.txt            # Server-specific dependencies (used by Render build)
 │   │
 │   ├── artifacts/
-│   │   ├── banglore_home_prices_model.pickle
-│   │   └── columns.json
+│   │   ├── banglore_home_prices_model.pickle   # Production model copy
+│   │   └── columns.json                        # Production schema copy
 │   │
 │   ├── routes/
 │   │   ├── prediction_routes.py
@@ -268,7 +288,8 @@ Bangalore-House-Price-Prediction/
 │       ├── compare.html
 │       ├── dashboard.html
 │       ├── history.html
-│       └── about.html
+│       ├── about.html
+│       └── app.html                # Shared shell/layout template included by the pages above
 │
 └── vercel-frontend/                # Decoupled static frontend (Vercel)
     ├── index.html
@@ -281,8 +302,10 @@ Bangalore-House-Price-Prediction/
     └── static/
         ├── css/
         └── js/
-            └── config.js           # API base URL config for Vercel build
+            └── config.js           # Sets the backend API base URL — see note below
 ```
+
+> **Note on `vercel-frontend/static/js/config.js`:** because the frontend is deployed separately from the Flask API, this file holds the single line that tells the static site where to send its `fetch()` calls — e.g. `export const API_BASE_URL = "https://bangalore-house-price-prediction-2xdu.onrender.com";`. Point it at your own Render URL (or `http://127.0.0.1:5000` for local testing) before deploying or running the frontend standalone.
 
 ---
 
@@ -302,7 +325,23 @@ Bangalore-House-Price-Prediction/
 
 ---
 
+## ⚙️ Environment Variables
+
+For local development, the app runs with sensible defaults out of the box — no `.env` file is required to get started. If you customize `server/config.py`, the variables it typically reads are:
+
+| Variable | Purpose | Required |
+|---|---|---|
+| `PYTHON_VERSION` | Pins the Python runtime on Render | Production only |
+| `FLASK_ENV` / `FLASK_DEBUG` | Toggles debug mode locally | Optional |
+| `DATABASE_URL` | Overrides the default SQLite path if you swap databases | Optional |
+
+> Check `server/config.py` directly for the authoritative list — this table reflects the variables the config module is structured to accept.
+
+---
+
 ## ⚙️ Local Installation
+
+### Backend (Flask API)
 
 **1. Clone the repository**
 ```bash
@@ -311,8 +350,12 @@ cd Bangalore-House-Price-Prediction
 ```
 
 **2. Install dependencies**
+
+There are two `requirements.txt` files — the root one is fine for a quick local run; `server/requirements.txt` is what Render actually installs in production, so use that one if you want your local environment to mirror the deployed API exactly.
 ```bash
 pip install -r requirements.txt
+# or, to match production exactly:
+pip install -r server/requirements.txt
 ```
 
 **3. Start the Flask server**
@@ -326,11 +369,26 @@ python app.py
 http://127.0.0.1:5000
 ```
 
-> The frontend in `vercel-frontend/` is a standalone static build. Open `index.html` directly or point `config.js` to your local API.
+### Frontend (decoupled Vercel build)
+
+The frontend in `vercel-frontend/` is a standalone static site — it doesn't need Node, a build step, or the Flask server running on the same machine.
+
+**1. Point it at an API**
+
+Edit `vercel-frontend/static/js/config.js` and set the base URL to either your local Flask server or the live Render deployment:
+```js
+export const API_BASE_URL = "http://127.0.0.1:5000"; // or your Render URL
+```
+
+**2. Open it**
+
+Just open `vercel-frontend/index.html` directly in a browser, or serve the folder with any static file server (e.g. `npx serve vercel-frontend`).
 
 ---
 
 ## 🚀 API Reference
+
+> ⚠️ The routes below reflect the endpoint names as designed. Prefixes for `history` and `analytics` are defined by the `Blueprint` registration inside `history_routes.py` and `analytics_routes.py` — confirm the exact prefix in those files (or `app.py`'s blueprint registration) before integrating against them, in case a route group has been mounted under a prefix like `/api`.
 
 ### Get All Locations
 ```http
@@ -389,6 +447,8 @@ GET /analytics/overview
 | **Start Command** | `cd server && gunicorn app:app` |
 | **Environment Variable** | `PYTHON_VERSION = 3.10` |
 
+**About `wsgi.py`:** the repo also ships a root-level `wsgi.py` as an alternative WSGI entry point. If you deploy from the repo root instead of `cd`-ing into `server/`, use `gunicorn wsgi:app` instead of `app:app`. The currently deployed Render service uses the `cd server && gunicorn app:app` form shown above — the two are equivalent, just pointed at different working directories, so pick one and keep your build/start commands consistent with it.
+
 ---
 
 ## 🩹 Changelog & Fixes
@@ -400,14 +460,16 @@ GET /analytics/overview
 | **v1.1** | Smart proportional BHK validation (replaced rigid lookup table); bathroom auto-reset on BHK change |
 | **v1.0** | Initial release: Linear Regression model, Flask API, basic HTML frontend, Render deployment |
 
+> **Experimental / removed:** compiled artifacts for a `recommendation_service` and a `chat_service` exist in `server/services/__pycache__/` but their source files aren't in the current tree. These were early explorations toward the "Recommendation engine" and "AI Chat Assistant" roadmap items below and were pulled before the v2.0 release — they'll return once rebuilt against the current service-layer architecture.
+
 ---
 
 ## 📈 Roadmap
 
 - [ ] XGBoost / Random Forest model comparison
-- [ ] Recommendation engine (similar properties)
+- [ ] Recommendation engine (similar properties) — early prototype existed pre-v2.0, see Changelog
 - [ ] Price alert & watchlist system
-- [ ] AI Chat Assistant for property Q&A
+- [ ] AI Chat Assistant for property Q&A — early prototype existed pre-v2.0, see Changelog
 - [ ] Heatmaps & geo-intelligence overlays
 - [ ] User authentication & saved profiles
 - [ ] Mobile app version
@@ -442,5 +504,5 @@ If this project helped you or you found it interesting, consider giving it a ⭐
 ---
 
 <div align="center">
-  <sub>Built with 🧠 ML + 🐍 Python + ☕ persistence by Dhruvik Kansagara</sub>
+  <sub>Built with 🧠 ML + 🐍 Python + ☕ persistence by Dhruvik Kansagra</sub>
 </div>
